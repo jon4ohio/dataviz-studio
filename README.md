@@ -9,9 +9,15 @@ The preview draws an interactive *sample* chart in plain SVG; the ECharts
 Milestone 4 ([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
 
 Architecture (pipeline, ownership, invariants) is normative in
-[docs/architecture/contract.md](docs/architecture/contract.md). Apache ECharts
-is not part of the platform architecture—only the initial
+[docs/architecture/contract.md](docs/architecture/contract.md). Vocabulary
+(meaning) is in [docs/architecture/domain-model.md](docs/architecture/domain-model.md);
+TypeScript representation lives under `domain/schema/`. Apache ECharts is
+not part of the platform architecture—only the initial
 `VisualizationRenderer` adapter ([ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md)).
+
+Milestone 2 (canonical model) is implemented and **frozen** as the public
+platform API. Next is the ECharts Renderer ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md))
+for `bar` only; the preview still draws sample SVG until that lands.
 
 For contributors and agents: start at [docs/project/entry.md](docs/project/entry.md)
 (project coordination).
@@ -34,6 +40,7 @@ manifest…** and pick `manifest.json` in this folder. Run the plugin from
 | `npm run dev` | Vite dev server for the UI in a browser tab (bridge shows "Browser preview") |
 | `npm run build` | Builds `dist/index.html` (single-file UI) and `dist/code.js` (plugin runtime) |
 | `npm run typecheck` | Type-checks the UI/shared/domain project and the plugin runtime project |
+| `npm run test` | Unit tests for the canonical schema (Dataset, Registry, validation/codec) |
 
 After changing plugin or UI code, run `npm run build` and re-run the plugin in
 Figma. The UI is bundled into one HTML document because the Figma plugin
@@ -69,7 +76,7 @@ plugin/    Figma plugin runtime (insert Auto Layout charts + selection)
 ui/        React editor shell — Data | Preview | Style
 shared/    Message Bridge contracts (the only cross-runtime interface)
 domain/    schema / transform / renderers / theme / persistence / import
-           (persistence serialize/parse is live; other modules are stubs)
+           (schema + persistence are live; transform/renderers adapters stubbed)
 ```
 
 Pipeline and invariants: [Architecture Contract](docs/architecture/contract.md).

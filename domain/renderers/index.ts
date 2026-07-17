@@ -1,8 +1,12 @@
 import type { ChartType, VisualizationSpec } from "../schema";
 
 /**
- * Frozen contracts for all rendering engines (Apache ECharts in V1;
- * AntV G2 and D3.js later). Implementations arrive in Milestone 3.
+ * Rendering contracts — Public Platform API (stable after SPEC-003).
+ * Changes require an ADR or an approved breaking-change proposal.
+ *
+ * Meaning: docs/architecture/domain-model.md
+ * Implementations (ECharts Renderer) arrive in Milestone 3 / SPEC-004.
+ * ECharts imports stay inside the renderer package only.
  */
 
 export interface RenderResult {

@@ -351,6 +351,17 @@ input:focus-visible {
   margin-bottom: 14px;
 }
 
+.field-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-2);
+  margin: -8px 0 14px;
+}
+
+.field-hint .muted {
+  color: var(--ink-3);
+}
+
 .field-group {
   margin-bottom: 20px;
 }

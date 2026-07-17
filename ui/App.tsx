@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBridge } from "./bridge";
 import {
   CANVAS_THEMES,
@@ -14,6 +14,8 @@ import {
   type SampleState,
   type SeriesMark
 } from "./sample";
+import { sampleStateToVisualizationSpec } from "./sampleToSpec";
+import { getVisualizationKind } from "@domain/schema";
 import { buildSampleMeta } from "@domain/persistence";
 import type { ShellMode } from "@shared/uiLayout";
 import { legendItemsForExport, renderSampleSvg } from "./exportSvg";
@@ -83,6 +85,10 @@ export function App() {
   }, [bridge.managedMeta, expand]);
 
   const patch = (p: Partial<SampleState>) => setState((s) => ({ ...s, ...p }));
+
+  /** Canonical model binding — preview still sample SVG until SPEC-004. */
+  const visualizationSpec = useMemo(() => sampleStateToVisualizationSpec(state), [state]);
+  const registryMeta = getVisualizationKind(visualizationSpec.kind);
 
   const updateSeries = (id: string, update: (s: SampleSeries) => SampleSeries) =>
     setState((s) => ({
@@ -170,6 +176,8 @@ export function App() {
       <main className="workbench">
         <DataPanel
           state={state}
+          modelKindLabel={registryMeta?.label ?? visualizationSpec.kind}
+          modelFamily={registryMeta?.family ?? "cartesian"}
           onSetChartType={(chartType) => patch({ chartType })}
           onRenameSeries={(id, name) => updateSeries(id, (s) => ({ ...s, name }))}
           onToggleSeries={(id) => updateSeries(id, (s) => ({ ...s, visible: !s.visible }))}

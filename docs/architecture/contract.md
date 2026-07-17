@@ -47,13 +47,9 @@ All visualization features MUST enter the rendering pipeline through `Visualizat
 
 ## Visualization Registry
 
-The **Visualization Registry** (not a narrow “chart registry”) may grow to own:
+The **Visualization Registry** owns **metadata only**: chart metadata, defaults, supported encodings, capability flags (and later editor configuration / renderer selection hints). It does **not** own rendering, layout, or SVG generation.
 
-- Visualization metadata and capabilities
-- Defaults
-- Renderer selection
-- Supported encodings
-- Editor configuration
+Entity vocabulary and meanings live in the [Domain Model](domain-model.md)—separate from schema representation.
 
 ## Architectural invariants
 
@@ -77,6 +73,7 @@ Apache ECharts is **not** part of the platform architecture. It is documented so
 
 ## References
 
+- [Domain Model](domain-model.md) — vocabulary and meanings
 - [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md) — editable SoT
 - [ADR-003](../decisions/ADR-003-echarts-initial-renderer-adapter.md) — initial renderer adapter
 - [SPEC-001](../specs/SPEC-001-v1-product-scope.md) — product scope

@@ -26,14 +26,34 @@ Editor UI and preview **consume** the model; they do not replace it as source of
 
 ## Acceptance
 
-- [ ] A visualization can be fully represented without referencing ECharts-specific config
-- [ ] Spec validates, serializes to JSON, and deserializes without loss of editable fields
-- [ ] Visualization Registry can resolve at least the initial Cartesian kinds with defaults
-- [ ] Preview / controls in the UI bind to `VisualizationSpec` (even if rendering is still sample SVG until SPEC-004)
+- [x] A visualization can be fully represented without referencing ECharts-specific config
+- [x] Spec validates, serializes to JSON, and deserializes without loss of editable fields
+- [x] Visualization Registry can resolve at least the initial Cartesian kinds with defaults
+- [x] Preview / controls in the UI bind to `VisualizationSpec` (even if rendering is still sample SVG until SPEC-004)
+
+## Public Platform API (frozen)
+
+**SPEC-003 is frozen.** Treat these contracts like a public API.
+
+Every proposed change should answer: *Does this change the language of the platform?*
+
+- If **yes** → ADR discussion (or approved breaking-change proposal) before merging.
+- If **no** → it belongs in implementation (renderers, document integration, importers, UI), not in the canonical model.
+
+Stable surface:
+
+- `VisualizationSpec`
+- `Dataset`
+- Visualization Registry
+- `VisualizationRenderer`
+- `RenderResult`
+
+Do not “tweak” the model casually while building SPEC-004+. Validate the design by implementing against it.
 
 ## References
 
 - [Architecture Contract](../architecture/contract.md)
+- [Domain Model](../architecture/domain-model.md) — vocabulary (meaning); schema is representation
 - [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md)
 - [SPEC-001](SPEC-001-v1-product-scope.md)
 - `domain/schema/`

@@ -5,14 +5,14 @@
 
 ## Delta
 
-- **Architecture Governance Realignment:** normative [Architecture Contract](../docs/architecture/contract.md) (pipeline, ownership, invariants); [ADR-003](../docs/decisions/ADR-003-echarts-initial-renderer-adapter.md) supersedes ADR-002 (ECharts as initial **renderer adapter**, not platform architecture); capability milestones remapped (Document Integration, Data Pipeline, Theme System, Visualization Families).
-- Shell modes: workbench (`1080×700`) vs minimized floating card (`320×72`) via `resize-ui`; collapse on minimize/export/blur; expand on card click or managed selection.
-- Milestone 1 Foundation remains complete: loadable plugin, typed UI ↔ plugin bridge, React UI shell, sample SVG preview (not ECharts yet). Thin document export slice exists; full round-trip is Milestone 4 ([SPEC-005](../docs/specs/SPEC-005-document-integration.md)).
+- **Platform definition complete (Phase 1):** Architecture Contract, ADRs, Domain Model, SPEC-003 schema / validation / registry, Public Platform API **frozen**. Work is now **implementation-driven** (validate contracts, don’t redesign them).
+- SPEC-004 reframed as **ECharts Renderer** (not “adapter” milestone title): internal Spec → Option → ECharts → SVG → `RenderResult`; **`bar` only**; four slices (skeleton → option → SVG → integration).
+- UI still binds to `VisualizationSpec`; preview remains sample SVG until SPEC-004 Slice 4.
 
 ## Horizon
 
-1. [SPEC-003](../docs/specs/SPEC-003-canonical-schema.md) — Canonical Visualization Model (Visualization Registry, validation, serialization) before renderer work.
-2. [SPEC-004](../docs/specs/SPEC-004-echarts-renderer.md) — ECharts adapter for `bar` first, then remaining initial Cartesian family.
+1. [SPEC-004](../docs/specs/SPEC-004-echarts-renderer.md) — ECharts Renderer, four slices, `bar` only; prove `VisualizationSpec` → `RenderResult`.
+2. [SPEC-005](../docs/specs/SPEC-005-document-integration.md) — document integration + round-trip (first user-perceived “native Figma” moment).
 3. Follow build order in [EXECUTION_PLAN.md](../EXECUTION_PLAN.md).
 
 ## Blocks
