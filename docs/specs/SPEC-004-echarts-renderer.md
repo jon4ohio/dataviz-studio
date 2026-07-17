@@ -102,6 +102,55 @@ domain/renderers/
 
 Platform, UI, plugin, and schema code MUST NOT import `echarts` or anything under `domain/renderers/echarts/` except through the public renderer export.
 
+## Reviewer constraints
+
+These rules do not change architecture—they define how reviewers evaluate SPEC-004 implementation. Public contracts remain frozen ([SPEC-003](SPEC-003-canonical-schema.md)).
+
+### Deterministic `option-builder`
+
+Treat `buildOption(spec)` as a **compiler**, not a helper.
+
+```text
+VisualizationSpec
+        ↓
+buildOption(spec)
+        ↓
+ECharts Option
+```
+
+Same `VisualizationSpec` MUST always produce the same Option object. Forbidden: hidden defaults based on runtime state, random IDs, time-dependent values.
+
+### Module responsibilities
+
+| File | Owns | Must not own |
+|------|------|----------------|
+| `renderer.ts` | Orchestrate Spec → Option → SVG → `RenderResult` | Mapping / business rules |
+| `option-builder.ts` | Spec → Option translation | ECharts instance / SVG / Figma |
+| `defaults.ts` | Static defaults only | Runtime / random / clock |
+| `mappings.ts` | Platform concept → ECharts value lookup | Business logic (push to builder or schema validation) |
+
+If business logic appears in `mappings.ts`, it usually belongs in the option builder or in validation.
+
+### Option snapshots (Slice 2 primary test)
+
+Primary regression for Slice 2+: `VisualizationSpec` → `buildOption()` → assert Option structure. SVG tests (Slice 3+) are secondary; Option snapshots remain stable if ECharts SVG output churns.
+
+### Snapshot update policy
+
+> Option snapshot updates are expected only when the `VisualizationSpec` → Option translation intentionally changes. Snapshot-only PRs without an accompanying explanation should be treated as regressions until reviewed.
+
+Snapshots are a **contract**, not a convenience.
+
+### Reviewer checklist (every PR)
+
+| Check | Pass criteria |
+|-------|----------------|
+| Determinism | Same `VisualizationSpec` produces an identical Option |
+| Purity | No mutation of `VisualizationSpec` |
+| Module boundaries | Logic remains within the owning module |
+| Snapshot stability | Option snapshots pass without updates unless intentionally changed |
+| Public API | No changes to frozen contracts without ADR approval |
+
 ## Scope: `bar` only
 
 The Visualization Registry may still list other Cartesian kinds. This milestone implements **`bar` only**.
@@ -120,8 +169,9 @@ No ECharts. No option generation. No real SVG rendering.
 
 ### Slice 2 — Bar translation
 
-- `VisualizationSpec` → ECharts Option in `option-builder.ts`
-- Unit-test option shape only (no SVG)
+- Deterministic `buildOption(spec)` in `option-builder.ts` (`VisualizationSpec` → ECharts Option)
+- **Primary tests:** Option snapshot / structure asserts (same Spec → identical Option)
+- No SVG required yet
 
 ### Slice 3 — SVG rendering
 
