@@ -46,7 +46,7 @@ Stable surface:
 - `Dataset`
 - Visualization Registry
 - `VisualizationRenderer`
-- `RenderResult`
+- `RenderResult` (shape finalized under [SPEC-004](SPEC-004-echarts-renderer.md): `success`, `svg`, dimensions, `renderer`, `version`, `warnings`)
 
 Do not “tweak” the model casually while building SPEC-004+. Validate the design by implementing against it.
 

@@ -3,11 +3,42 @@
 **Contract:** Specification  
 **Problem coordinated:** How does the first `VisualizationRenderer` turn a `VisualizationSpec` into a `RenderResult`?
 
-The architectural concept is the **renderer**. An adapter to Apache ECharts is an implementation detail *inside* that renderer. Product code depends only on `VisualizationRenderer` → `RenderResult`.
+The architectural concept is the **renderer**. Wiring to Apache ECharts is an implementation detail *inside* that renderer. Product code depends only on `VisualizationSpec` → `render()` → `RenderResult`.
 
 ## Phase context
 
-Platform definition ([SPEC-003](SPEC-003-canonical-schema.md)) is **frozen** as a public API. This milestone **validates** those contracts with the first renderer implementation—not by extending the platform language.
+Platform definition ([SPEC-003](SPEC-003-canonical-schema.md)) is **frozen** as a public API. This milestone **validates** those contracts with the first renderer—not by extending the platform language.
+
+Architecture is **closed for modification, open for extension**: implement against the contracts; do not reopen the model unless a change alters the platform language (then ADR).
+
+## Renderer purity
+
+The renderer is a **pure transformation**.
+
+```text
+VisualizationSpec
+        │
+        ▼
+render()
+        │
+        ▼
+RenderResult
+```
+
+It MUST have **no observable side effects**. It must not:
+
+- mutate `VisualizationSpec`
+- create Figma nodes
+- read the Figma document
+- access plugin storage
+- update UI state
+- perform network requests
+
+Its only responsibility:
+
+> **Transform a valid `VisualizationSpec` into a `RenderResult`.**
+
+Document insert, metadata, and round-trip belong to [SPEC-005](SPEC-005-document-integration.md). There is **no Figma node** on `RenderResult`.
 
 ## Public responsibility
 
@@ -16,6 +47,23 @@ VisualizationSpec  →  RenderResult
 ```
 
 Everything else is private to the renderer package.
+
+## `RenderResult` (stable output contract)
+
+```ts
+interface RenderResult {
+  success: boolean;
+  svg: string;
+  width: number;
+  height: number;
+  renderer: string;
+  version: string;
+  warnings: RenderWarning[];
+  diagnostics?: RenderDiagnostics;
+}
+```
+
+Fields may be empty or minimal early, but the shape is stable for insertion, debugging, renderer comparison, regression tests, and future renderer selection.
 
 ## Internal translation pipeline
 
@@ -40,72 +88,78 @@ RenderResult
 
 **ECharts Option is an internal representation.** It must not appear on `VisualizationSpec`, in document metadata, or in UI/shared modules.
 
-## Ownership / import boundary
+## Package layout
 
-| Outside renderer | Inside renderer only |
-|------------------|----------------------|
-| `VisualizationSpec` | `echarts` / `echarts/core` |
-| `VisualizationRenderer` | Option builders / transforms |
-| `RenderResult` consumers | SVG extraction from ECharts |
+```text
+domain/renderers/
+  index.ts                 ← public VisualizationRenderer / RenderResult
+  echarts/
+    renderer.ts            ← VisualizationRenderer implementation
+    option-builder.ts      ← Spec → Option (Slice 2+)
+    defaults.ts
+    mappings.ts
+```
 
-Platform, UI, plugin, and schema code MUST NOT import ECharts.
+Platform, UI, plugin, and schema code MUST NOT import `echarts` or anything under `domain/renderers/echarts/` except through the public renderer export.
 
 ## Scope: `bar` only
 
 The Visualization Registry may still list other Cartesian kinds. This milestone implements **`bar` only**.
 
-Line, area, scatter, column, and mixed are incremental additions to the same translation layer **after** the renderer architecture is proven—not part of SPEC-004 exit criteria. Circular and other families remain [SPEC-008](SPEC-008-visualization-families.md).
+Do **not** add line, area, scatter, column, or mixed before [SPEC-005](SPEC-005-document-integration.md). Round-tripping one chart through the document is more valuable than six kinds that cannot be edited. Other Cartesian kinds are incremental after document integration is proven. Circular and other families remain [SPEC-008](SPEC-008-visualization-families.md).
 
 ## Implementation slices
 
-### Slice 1 — Renderer skeleton
+### Slice 1 — Renderer skeleton (intentionally boring)
 
-- Module implementing `VisualizationRenderer`
-- `supports("bar")` (and rejects others for now)
-- `render(spec)` returns a placeholder `RenderResult` (valid empty/minimal SVG + width/height + engine metadata)
+No ECharts. No option generation. No real SVG rendering.
+
+- Implement `VisualizationRenderer` for `bar` (`supports("bar")` only)
+- `render(spec)` returns placeholder `RenderResult`: minimal SVG, correct dimensions from the spec, `renderer` id, `version`, `success: true`, empty `warnings`
+- Unit-test the contract; prove purity (input unchanged)
 
 ### Slice 2 — Bar translation
 
-- `VisualizationSpec` → ECharts Option (internal)
-- Unit-test generated option shape (no SVG required yet)
+- `VisualizationSpec` → ECharts Option in `option-builder.ts`
+- Unit-test option shape only (no SVG)
 
 ### Slice 3 — SVG rendering
 
-- Drive Apache ECharts with the option → extract SVG
-- Verify SVG string is non-empty and well-formed enough for insert
+- Option → Apache ECharts → SVG
+- Failures stay localized to the rendering step
 
 ### Slice 4 — Integration
 
 - End-to-end: `VisualizationSpec` → `render()` → `RenderResult`
-- First contract test:
-
-```text
-assert success
-assert svg exists / non-empty
-assert width, height
-assert engine / engineVersion metadata
-```
-
-- Wire editor preview to the renderer for `bar` (sample SVG remains for unsupported kinds)
+- Contract assertions: `success`, non-empty `svg`, `width`, `height`, `renderer`, `version`
+- Wire editor preview to the renderer for `bar` only (sample SVG for unsupported kinds)
 
 ## Acceptance
 
-- [ ] `VisualizationRenderer` is implemented as the ECharts Renderer (ECharts confined inside the package)
-- [ ] `bar` renders from `VisualizationSpec` into a valid `RenderResult`
+- [x] Renderer purity holds for Slice 1 (placeholder; no Figma / storage / UI / network; no spec mutation)
+- [ ] `VisualizationRenderer` implemented as ECharts Renderer package (ECharts confined inside from Slice 3)
+- [x] `bar` only in scope for this milestone (Slice 1 supports bar only)
 - [ ] ECharts Option never appears outside the renderer
-- [ ] No ECharts types or option fields appear on `VisualizationSpec`
-- [ ] Contract integration test: `render()` succeeds with svg, width, height, engine metadata
-- [ ] Editor preview uses renderer output for `bar`
+- [ ] No ECharts types or option fields on `VisualizationSpec`
+- [x] Contract unit test covers placeholder `RenderResult` shape (Slice 1)
+- [ ] Editor preview uses renderer output for `bar` (Slice 4)
 
 ## After this milestone
 
-Move promptly to [SPEC-005](SPEC-005-document-integration.md) (document insert + metadata + round-trip)—where users first perceive a native Figma design tool.
+**Stop expanding chart types.** Move to [SPEC-005](SPEC-005-document-integration.md).
+
+Disciplined sequence:
+
+1. SPEC-004 — one renderer, one chart (`bar`), one contract  
+2. SPEC-005 — one document integration, one metadata format, one round-trip  
+3. SPEC-006 — one data pipeline  
+4. **Then** expand chart coverage  
 
 ## References
 
 - [Architecture Contract](../architecture/contract.md)
 - [Domain Model](../architecture/domain-model.md)
 - [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md)
-- [ADR-003](../decisions/ADR-003-echarts-initial-renderer-adapter.md) — ECharts as initial renderer implementation
+- [ADR-003](../decisions/ADR-003-echarts-initial-renderer-adapter.md)
 - [SPEC-003](SPEC-003-canonical-schema.md) — frozen public platform API
-- `domain/renderers/` (public contract), renderer implementation package (private ECharts)
+- `domain/renderers/`
