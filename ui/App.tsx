@@ -86,7 +86,7 @@ export function App() {
 
   const patch = (p: Partial<SampleState>) => setState((s) => ({ ...s, ...p }));
 
-  /** Canonical model binding — preview still sample SVG until SPEC-004. */
+  /** Canonical model binding — controls drive Spec; preview consumes RenderResult for bar. */
   const visualizationSpec = useMemo(() => sampleStateToVisualizationSpec(state), [state]);
   const registryMeta = getVisualizationKind(visualizationSpec.kind);
 
@@ -197,6 +197,7 @@ export function App() {
         />
         <PreviewStage
           state={state}
+          visualizationSpec={visualizationSpec}
           onToggleSeries={(id) => updateSeries(id, (s) => ({ ...s, visible: !s.visible }))}
         />
         <StylePanel state={state} onChange={patch} />

@@ -188,6 +188,8 @@ No ECharts. No option generation. No real SVG rendering.
 - Contract assertions: `success`, non-empty `svg`, `width`, `height`, `renderer`, `version`
 - Wire editor preview to the renderer for `bar` only (sample SVG for unsupported kinds)
 
+**Status:** Complete (UI `previewResult` consumes `RenderResult` for `bar`).
+
 ## Acceptance
 
 - [x] Renderer purity holds for Slice 1 (placeholder; no Figma / storage / UI / network; no spec mutation)
@@ -196,7 +198,9 @@ No ECharts. No option generation. No real SVG rendering.
 - [x] ECharts Option never appears outside the renderer
 - [x] No ECharts types or option fields on `VisualizationSpec`
 - [x] Contract unit test covers placeholder `RenderResult` shape (Slice 1)
-- [ ] Editor preview uses renderer output for `bar` (Slice 4)
+- [x] Editor preview uses renderer output for `bar` (Slice 4)
+
+**Status:** SPEC-004 complete. Stop chart expansion; next is [SPEC-005](SPEC-005-document-integration.md).
 
 ## After this milestone
 

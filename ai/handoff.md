@@ -5,14 +5,15 @@
 
 ## Delta
 
-- **SPEC-004 Slice 3 complete:** `renderOption(option, w, h)` (ECharts SVG SSR, dispose in-call); `renderer.ts` orchestrates Spec → Option → SVG → `RenderResult` and normalizes failures. ECharts confined to `domain/renderers/echarts/`.
-- Slice 2 Option snapshots unchanged. Public platform API untouched.
+- **SPEC-004 complete (Slices 1–4):** Preview for `bar` consumes `RenderResult` (`previewResult` state, branch on `success`, stale Spec guard, contract-driven fallback). Export still on sample path (SPEC-005).
+- Renderer architecture validated end-to-end: Spec → Renderer → RenderResult → UI Preview.
+- **Do not** add line/area/scatter via ECharts next.
 
 ## Horizon
 
-1. SPEC-004 Slice 4 — end-to-end Spec → `RenderResult` + editor preview for `bar`.
-2. **Stop.** Move to [SPEC-005](../docs/specs/SPEC-005-document-integration.md) document round-trip before other chart kinds.
-3. Then SPEC-006; expand chart coverage last.
+1. After merge: tag **`v0.1.0-renderer-foundation`** (architectural checkpoint).
+2. [SPEC-005](../docs/specs/SPEC-005-document-integration.md) — document insert + metadata + round-trip (Spec → RenderResult → Figma → Spec).
+3. Then SPEC-006; expand chart coverage only after round-trip works.
 
 ## Blocks
 
