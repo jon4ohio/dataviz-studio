@@ -1,0 +1,124 @@
+import { useState } from "react";
+import { useBridge } from "./bridge";
+import {
+  CANVAS_THEMES,
+  CATEGORIES,
+  INITIAL_STATE,
+  MAX_SERIES,
+  SIZE_LIMITS,
+  clampSize,
+  cycleSlot,
+  nextFreeSlot,
+  randomizeValues,
+  type SampleSeries,
+  type SampleState,
+  type SeriesMark
+} from "./sample";
+import { buildSampleMeta } from "@domain/persistence";
+import { legendItemsForExport, renderSampleSvg } from "./exportSvg";
+import { TopBar } from "./components/TopBar";
+import { DataPanel } from "./components/DataPanel";
+import { PreviewStage } from "./components/PreviewStage";
+import { StylePanel } from "./components/StylePanel";
+
+export function App() {
+  const bridge = useBridge();
+  const [state, setState] = useState<SampleState>(INITIAL_STATE);
+
+  const patch = (p: Partial<SampleState>) => setState((s) => ({ ...s, ...p }));
+
+  const updateSeries = (id: string, update: (s: SampleSeries) => SampleSeries) =>
+    setState((s) => ({
+      ...s,
+      series: s.series.map((sr) => (sr.id === id ? update(sr) : sr))
+    }));
+
+  const addSeries = () =>
+    setState((s) => {
+      if (s.series.length >= MAX_SERIES) return s;
+      const next: SampleSeries = {
+        id: `s-${Math.random().toString(36).slice(2, 8)}`,
+        name: `Series ${s.series.length + 1}`,
+        values: randomizeValues(new Array(CATEGORIES.length).fill(0)),
+        visible: true,
+        slot: nextFreeSlot(s.series),
+        mark: "line"
+      };
+      return { ...s, series: [...s.series, next] };
+    });
+
+  const removeSeries = (id: string) =>
+    setState((s) =>
+      s.series.length <= 1 ? s : { ...s, series: s.series.filter((sr) => sr.id !== id) }
+    );
+
+  const randomize = () =>
+    setState((s) => ({
+      ...s,
+      series: s.series.map((sr) => ({ ...sr, values: randomizeValues(sr.values) }))
+    }));
+
+  const handleExport = () => {
+    if (bridge.status !== "online") {
+      window.alert("Export requires the Figma plugin runtime. Open the plugin inside Figma.");
+      return;
+    }
+
+    const { svg, width, height } = renderSampleSvg(state);
+    const theme = CANVAS_THEMES[state.canvasTheme];
+    const meta = buildSampleMeta({
+      title: state.title,
+      showTitle: state.showTitle,
+      titleAlign: state.titleAlign,
+      showLegend: state.showLegend,
+      legendPosition: state.legendPosition,
+      chartType: state.chartType,
+      width: clampSize(state.width, SIZE_LIMITS.minW, SIZE_LIMITS.maxW),
+      height: clampSize(state.height, SIZE_LIMITS.minH, SIZE_LIMITS.maxH),
+      theme: { surface: theme.surface, ink: theme.ink, ink2: theme.ink2 },
+      legendItems: legendItemsForExport(state),
+      sampleState: state
+    });
+
+    bridge.insertChart({ svg, width, height, meta });
+  };
+
+  return (
+    <div className="app">
+      <TopBar
+        status={bridge.status}
+        latency={bridge.latency}
+        hasSelection={bridge.hasSelection}
+        managedChart={bridge.managedMeta !== null}
+        onPing={bridge.ping}
+        onExport={handleExport}
+      />
+      <main className="workbench">
+        <DataPanel
+          state={state}
+          onSetChartType={(chartType) => patch({ chartType })}
+          onRenameSeries={(id, name) => updateSeries(id, (s) => ({ ...s, name }))}
+          onToggleSeries={(id) => updateSeries(id, (s) => ({ ...s, visible: !s.visible }))}
+          onSetSeriesMark={(id, mark: SeriesMark) => updateSeries(id, (s) => ({ ...s, mark }))}
+          onSetSeriesValues={(id, values) => updateSeries(id, (s) => ({ ...s, values }))}
+          onCycleSeriesColor={(id) =>
+            setState((s) => ({
+              ...s,
+              series: s.series.map((sr) =>
+                sr.id === id ? { ...sr, slot: cycleSlot(s.series, id) } : sr
+              )
+            }))
+          }
+          onAddSeries={addSeries}
+          onRemoveSeries={removeSeries}
+          onRandomize={randomize}
+        />
+        <PreviewStage
+          state={state}
+          onToggleSeries={(id) => updateSeries(id, (s) => ({ ...s, visible: !s.visible }))}
+        />
+        <StylePanel state={state} onChange={patch} />
+      </main>
+    </div>
+  );
+}

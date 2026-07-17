@@ -1,0 +1,755 @@
+/* ---------------------------------------------------------------------------
+   DataViz Studio — instrument chrome.
+   The tool recedes; data ink is the only saturated thing on screen.
+   Tokens follow the validated chart-chrome table (light + dark).
+--------------------------------------------------------------------------- */
+
+:root {
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --hairline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.1);
+  --accent: #2a78d6;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --plane: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --hairline: #2c2c2a;
+    --baseline: #383835;
+    --ring: rgba(255, 255, 255, 0.1);
+    --accent: #3987e5;
+  }
+}
+
+/* Figma injects this class when the editor theme is dark. It wins over the OS. */
+html.figma-dark {
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --hairline: #2c2c2a;
+  --baseline: #383835;
+  --ring: rgba(255, 255, 255, 0.1);
+  --accent: #3987e5;
+}
+html.figma-light {
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --hairline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.1);
+  --accent: #2a78d6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--plane);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Top bar ------------------------------------------------------------ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  height: 52px;
+  flex: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-text strong {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.brand-eyebrow {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--plane);
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.chip .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  flex: none;
+}
+
+button.chip {
+  cursor: pointer;
+}
+
+button.chip:disabled {
+  cursor: default;
+}
+
+.chip-online .dot {
+  background: var(--good);
+}
+
+.chip-connecting .dot {
+  background: var(--warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.chip-selection.is-active .dot {
+  background: var(--accent);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-connecting .dot {
+    animation: none;
+  }
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.button-primary {
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--plane);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.button-primary:not(:disabled):hover {
+  background: var(--ink-2);
+}
+
+.button-ghost {
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 500;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.button-ghost:hover {
+  border-color: var(--baseline);
+  color: var(--ink);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* --- Workbench layout --------------------------------------------------- */
+
+.workbench {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr) 264px;
+}
+
+@media (max-width: 860px) {
+  .workbench {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+.panel {
+  padding: 14px;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+.panel-data {
+  border-right: 1px solid var(--hairline);
+}
+
+.panel-style {
+  border-left: 1px solid var(--hairline);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+}
+
+.field-group {
+  margin-bottom: 20px;
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.field-row .field-label {
+  margin-bottom: 0;
+}
+
+.footnote {
+  margin-top: 10px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* --- Chart type grid ---------------------------------------------------- */
+
+.type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.type-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--plane);
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.type-button:hover {
+  border-color: var(--baseline);
+  color: var(--ink);
+}
+
+.type-button.is-selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* --- Series cards ------------------------------------------------------- */
+
+.series-card {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: var(--plane);
+}
+
+.series-card.is-off {
+  opacity: 0.55;
+}
+
+.series-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.series-swatch {
+  width: 14px;
+  height: 14px;
+  border: none;
+  padding: 0;
+  border-radius: 4px;
+  flex: none;
+  box-shadow: inset 0 0 0 1px var(--ring);
+  cursor: pointer;
+}
+
+.series-swatch:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--ring),
+    0 0 0 2px var(--hairline);
+}
+
+.series-name {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  padding: 2px 0;
+  border-bottom: 1px solid transparent;
+}
+
+.series-name:hover,
+.series-name:focus {
+  border-bottom-color: var(--baseline);
+}
+
+.series-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.series-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.values-input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-select {
+  height: 24px;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.icon-button {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.icon-button:not(:disabled):hover {
+  border-color: var(--baseline);
+  color: var(--ink);
+}
+
+.icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.add-series {
+  width: 100%;
+  padding: 7px 0;
+  border: 1px dashed var(--baseline);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.add-series:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* --- Style controls ----------------------------------------------------- */
+
+.text-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: var(--plane);
+  color: var(--ink);
+  font: inherit;
+}
+
+.text-input::placeholder {
+  color: var(--ink-3);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-2);
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 13px;
+  height: 13px;
+}
+
+.field-sublabel {
+  display: block;
+  color: var(--ink-3);
+  margin: 8px 0 5px;
+}
+
+.field-group.is-disabled .field-label,
+.check-row.is-disabled {
+  opacity: 0.5;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.segmented.seg-sm {
+  margin-top: 8px;
+}
+
+.segmented button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.size-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.size-row label {
+  flex: 1;
+  min-width: 0;
+}
+
+.size-row .field-sublabel {
+  margin-top: 0;
+}
+
+.segmented button {
+  flex: 1;
+  border: none;
+  background: var(--plane);
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 500;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--hairline);
+}
+
+.segmented button.is-selected {
+  background: var(--ink);
+  color: var(--plane);
+}
+
+.palette-row {
+  display: flex;
+  gap: 12px;
+}
+
+.palette-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.palette-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.palette-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-3);
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Preview stage: the plot bed ---------------------------------------- */
+
+.stage {
+  min-width: 0;
+  padding: 20px;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--plane);
+  overflow: auto;
+}
+
+.plot-bed {
+  position: relative;
+  flex: 1;
+  max-width: 760px;
+  align-self: center;
+  border: 1px solid;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 0;
+}
+
+/* Corner registration marks — the plotter-bed signature. */
+.crop {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 0 solid var(--ink-3);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.crop-tl { top: 7px; left: 7px; border-top-width: 1px; border-left-width: 1px; }
+.crop-tr { top: 7px; right: 7px; border-top-width: 1px; border-right-width: 1px; }
+.crop-bl { bottom: 7px; left: 7px; border-bottom-width: 1px; border-left-width: 1px; }
+.crop-br { bottom: 7px; right: 7px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.plot-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.plot-canvas {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  min-width: 130px;
+  max-width: 200px;
+  padding: 8px 10px;
+  border: 1px solid;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip-head {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.tooltip-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip-value {
+  font-weight: 600;
+}
+
+.plot-title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.plot-empty {
+  text-align: center;
+  padding: 80px 20px;
+  line-height: 1.7;
+}
+
+.legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  padding: 8px 0 14px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.legend-item.is-off {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.legend-chip {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid;
+  margin: 0 -22px;
+  padding: 8px 24px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.readout span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
