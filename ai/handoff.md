@@ -5,15 +5,14 @@
 
 ## Delta
 
-- **SPEC-004 complete (Slices 1–4):** Preview for `bar` consumes `RenderResult` (`previewResult` state, branch on `success`, stale Spec guard, contract-driven fallback). Export still on sample path (SPEC-005).
-- Renderer architecture validated end-to-end: Spec → Renderer → RenderResult → UI Preview.
-- **Do not** add line/area/scatter via ECharts next.
+- **SPEC-004 closed on main** (PR #6). Tag **`v0.1.0-renderer-foundation`** — stable platform API, renderer interface, ECharts `bar`, preview via `RenderResult` (not document integration / data / themes).
+- **SPEC-005 Document Projection shipped on branch:** semantic `ChartPluginMeta` v2, `migrateChartPluginMeta`, bar insert from `RenderResult`, Restoration from Spec, update-in-place preserving managed root identity.
 
 ## Horizon
 
-1. After merge: tag **`v0.1.0-renderer-foundation`** (architectural checkpoint).
-2. [SPEC-005](../docs/specs/SPEC-005-document-integration.md) — document insert + metadata + round-trip (Spec → RenderResult → Figma → Spec).
-3. Then SPEC-006; expand chart coverage only after round-trip works.
+1. Merge SPEC-005 branch; treat document lifecycle as stable.
+2. Then SPEC-006; expand chart coverage only after this lands on main.
+3. **Do not** add line/area/scatter via ECharts next.
 
 ## Blocks
 

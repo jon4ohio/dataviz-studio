@@ -1,30 +1,49 @@
 # SPEC-005: Milestone 4 — Document Integration
 
 **Contract:** Specification  
-**Problem coordinated:** How do visualizations round-trip between the editor and the Figma **document** without loss?
+**Problem coordinated:** Can a rendered visualization become a first-class design artifact without compromising the canonical model?
+
+## Vocabulary
+
+| Term | Meaning |
+|------|---------|
+| **Document Projection** | The persisted Figma representation of a visualization |
+| **Renderer** | Produces a `RenderResult` |
+| **Projection** | Materializes that result into the Figma document |
+| **Restoration** | Reconstructs editor state from the stored `VisualizationSpec` |
+
+## Guiding principle
+
+> **A Figma node is a cached projection of a VisualizationSpec, never the source of truth.**
+
+Re-render, theme change, and renderer upgrades always start from the stored Spec. Aligns with [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md) and the [Architecture Contract](../architecture/contract.md).
 
 ## Requirements
 
 ### Deliverables
 
-- SVG insertion into the Figma document
+- SVG insertion into the Figma document as a **Document Projection**
 - Auto sizing, grouping, and naming of inserted nodes
-- Plugin data / metadata on the root managed node
+- Semantic plugin metadata on the root managed node (no SVG / engine options)
 - Selection support (none / active / managed)
-- Reopen for editing: selection → read metadata → restore `VisualizationSpec` → populate UI
-- Update existing managed node after edits
+- **Restoration:** selection → read metadata → migrate → `VisualizationSpec` → editor → Renderer → `RenderResult` → update node
+- Managed updates replace the Document Projection while preserving the managed root identity
 
-### Metadata
+### Metadata (semantic only)
 
-Store at least:
+`ChartPluginMeta` v2 stores only information that cannot be regenerated:
 
-- `VisualizationSpec`
-- Theme / palette identity as needed
-- Schema / metadata version
-- Renderer id and renderer version
-- Plugin version
+- `schemaVersion`
+- `pluginVersion`
+- `rendererId`
+- `rendererVersion`
+- `spec` (`VisualizationSpec`)
 
-Metadata must be versioned from day one (see risks in [EXECUTION_PLAN.md](../../EXECUTION_PLAN.md)).
+Never store SVG, ECharts options, or renderer internals. Rule of thumb: if deleting a field would not lose user intent, it does not belong in metadata.
+
+Layout chrome used when materializing nodes is derived at **Projection** time — not part of the metadata SoT.
+
+All reads go through: `readMeta` → `migrateChartPluginMeta` → validated `ChartPluginMeta`.
 
 ### Current baseline
 
@@ -32,10 +51,10 @@ A thin export slice already exists (Auto Layout chart frames + versioned plugin 
 
 ## Acceptance
 
-- [ ] Round-trip editing works without loss of data or styling
-- [ ] Managed selection restores editor state from document metadata
-- [ ] Re-export updates the existing managed node without orphaning metadata
-- [ ] Document integration consumes `RenderResult`; it does not parse ECharts options
+- [x] Round-trip editing works without loss of Spec data (Restoration from metadata, not from SVG)
+- [x] Managed selection restores editor state from document metadata
+- [x] Re-export updates the existing managed node without orphaning metadata (preserves root identity)
+- [x] Document integration consumes `RenderResult`; it does not parse ECharts options
 
 ## References
 
@@ -43,4 +62,5 @@ A thin export slice already exists (Auto Layout chart frames + versioned plugin 
 - [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md)
 - [SPEC-001](SPEC-001-v1-product-scope.md)
 - [SPEC-004](SPEC-004-echarts-renderer.md)
+- Tag `v0.1.0-renderer-foundation`
 - `domain/persistence/`, `plugin/`
