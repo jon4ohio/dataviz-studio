@@ -12,7 +12,7 @@
 DataViz Studio must support visual editing, canvas export, and reopen/edit of inserted charts, with room for multiple rendering engines over time. If editor state or persistence were engine-specific config (or generated SVG), future engines and round-trip editing would couple to one vendor’s model.
 
 **In scope:** What is treated as editable project state for visualizations.  
-**Out of scope:** Which engine ships in V1 (see [ADR-002](ADR-002-v1-echarts-only.md)).
+**Out of scope:** Which library is the initial renderer adapter (see [ADR-003](ADR-003-echarts-initial-renderer-adapter.md)); pipeline and ownership boundaries (see [Architecture Contract](../architecture/contract.md)).
 
 ## Decision Drivers
 
@@ -64,15 +64,17 @@ Renderers convert canonical schema into engine-specific config; SVG is output on
 
 ## Review Schedule
 
-- **Next review:** After Milestone 3 (ECharts renderer) exit criteria, or when a second engine is proposed
+- **Next review:** After Milestone 3 (ECharts renderer adapter) exit criteria, or when a second adapter is proposed
 - **Review owner:** Project maintainer
 
 ## Related ADRs
 
-- [ADR-002](ADR-002-v1-echarts-only.md) — constrains which renderer ships in V1
+- [ADR-003](ADR-003-echarts-initial-renderer-adapter.md) — initial renderer adapter (supersedes ADR-002)
+- [ADR-002](ADR-002-v1-echarts-only.md) — superseded; historical V1-engine wording
 
 ## References
 
-- [SPEC-001](../specs/SPEC-001-v1-product-scope.md) — V1 product scope
-- [SPEC-003](../specs/SPEC-003-canonical-schema.md) — schema milestone
+- [Architecture Contract](../architecture/contract.md) — pipeline, ownership, invariants
+- [SPEC-001](../specs/SPEC-001-v1-product-scope.md) — product scope
+- [SPEC-003](../specs/SPEC-003-canonical-schema.md) — canonical visualization model milestone
 - Domain stubs: `domain/` (`VisualizationRenderer`, `RenderResult`)

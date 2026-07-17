@@ -1,11 +1,17 @@
 # DataViz Studio for Figma
 
-A design-first data visualization plugin for Figma. This repository is at
-**Milestone 1 — Foundation** plus a thin **canvas export** slice: a loadable
-plugin with a React UI shell, a typed UI ↔ plugin message bridge, frozen
-domain boundaries, and Auto Layout chart frames on insert. The preview draws
-an interactive *sample* chart in plain SVG; Apache ECharts arrives in
-Milestone 3. Full round-trip editor reopen is still Milestone 5 / SPEC-006.
+A design-first **visualization platform** delivered as a Figma plugin. This
+repository has completed **Milestone 1 — Foundation** and a thin **document
+export** slice: a loadable plugin with a React UI shell, a typed UI ↔ plugin
+message bridge, frozen domain boundaries, and Auto Layout frames on insert.
+The preview draws an interactive *sample* chart in plain SVG; the ECharts
+**renderer adapter** arrives in Milestone 3. Full round-trip editor reopen is
+Milestone 4 ([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
+
+Architecture (pipeline, ownership, invariants) is normative in
+[docs/architecture/contract.md](docs/architecture/contract.md). Apache ECharts
+is not part of the platform architecture—only the initial
+`VisualizationRenderer` adapter ([ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md)).
 
 For contributors and agents: start at [docs/project/entry.md](docs/project/entry.md)
 (project coordination).
@@ -52,7 +58,7 @@ Inside Figma, the top bar shows:
   ```
 
   Metadata is stored on the root frame (`dataviz-studio` plugin data, schema
-  version 1). Editor reopen from that metadata is not wired yet.
+  version 1). Editor reopen from that metadata is not wired yet (Milestone 4).
 
 In a plain browser (`npm run dev`), Export explains that Figma is required.
 
@@ -66,6 +72,7 @@ domain/    schema / transform / renderers / theme / persistence / import
            (persistence serialize/parse is live; other modules are stubs)
 ```
 
+Pipeline and invariants: [Architecture Contract](docs/architecture/contract.md).
 All UI ↔ runtime communication passes through the typed contracts in
-`shared/messages.ts`. Specs and ADRs live under `docs/`; build order and risks
-are in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
+`shared/messages.ts`. Specs and ADRs live under `docs/`; build order and
+Future Product Experience are in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).

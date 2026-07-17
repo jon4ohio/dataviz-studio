@@ -1,33 +1,32 @@
 # DataViz Studio — Execution roadmap
 
-**Objective:** Build a Figma plugin for editable, SVG-based data visualizations with a path to multiple rendering engines over time.
+**Objective:** Build a Figma plugin as a design-first **visualization platform**: canonical model, pluggable renderers, SVG document output, and editable round-trip.
 
 **Owned elsewhere (do not duplicate):**
 
 | Topic | Owner |
 |-------|-------|
-| V1 scope, UI flows, architecture intent | [SPEC-001](docs/specs/SPEC-001-v1-product-scope.md) |
+| Pipeline, ownership, invariants | [Architecture Contract](docs/architecture/contract.md) |
+| Product scope, UI flows | [SPEC-001](docs/specs/SPEC-001-v1-product-scope.md) |
 | Milestones 1–8 | [SPEC-002](docs/specs/SPEC-002-foundation.md) … [SPEC-009](docs/specs/SPEC-009-release-preparation.md) |
 | Canonical schema as SoT | [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md) |
-| V1 ECharts-only | [ADR-002](docs/decisions/ADR-002-v1-echarts-only.md) |
+| ECharts as initial renderer adapter | [ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md) |
 | Orientation / continuity | [Entry](docs/project/entry.md), [Handoff](ai/handoff.md) |
 
-This file owns **build order**, **testing strategy**, **risks**, and **post-V1 roadmap** only.
+This file owns **build order**, **testing strategy**, **risks**, and **Future Product Experience** only.
 
 ## Build order
 
-1. Scaffold the plugin and UI shell ([SPEC-002](docs/specs/SPEC-002-foundation.md)).
-2. Define the canonical schema before touching renderer logic ([SPEC-003](docs/specs/SPEC-003-canonical-schema.md)).
-3. Implement ECharts SVG rendering for one chart type first: `bar` ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md)).
-4. Add the remaining standard chart types.
-5. Build the data editor.
-6. Build styling panels ([SPEC-005](docs/specs/SPEC-005-editor-controls.md)).
-7. Implement export to canvas.
-8. Add metadata round-trip editing ([SPEC-006](docs/specs/SPEC-006-canvas-export-reediting.md)).
-9. Add palette memory ([SPEC-007](docs/specs/SPEC-007-color-system.md)).
-10. Harden import, validation, and UX ([SPEC-008](docs/specs/SPEC-008-import-and-polish.md)).
+1. Scaffold the plugin and UI shell ([SPEC-002](docs/specs/SPEC-002-foundation.md)) — **complete**.
+2. Canonical visualization model, Visualization Registry, validation, serialization ([SPEC-003](docs/specs/SPEC-003-canonical-schema.md)).
+3. ECharts renderer adapter for the initial Cartesian family — `bar` first ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md)).
+4. Document integration: insert, metadata, round-trip editing ([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
+5. Data pipeline into the model ([SPEC-006](docs/specs/SPEC-006-data-pipeline.md)).
+6. Theme system ([SPEC-007](docs/specs/SPEC-007-theme-system.md)).
+7. Additional visualization families ([SPEC-008](docs/specs/SPEC-008-visualization-families.md)).
+8. Release preparation ([SPEC-009](docs/specs/SPEC-009-release-preparation.md)).
 
-This order keeps the project testable from the first week and avoids building UI controls for a rendering model that is still unstable.
+This order keeps the project testable early and avoids building UI or document features against an unstable model. Capabilities expand by **layer and family**, not by isolated one-off chart types.
 
 ## Testing strategy
 
@@ -36,15 +35,15 @@ This order keeps the project testable from the first week and avoids building UI
 - Schema validation
 - Default spec generation
 - Data normalization
-- Schema-to-ECharts transforms
+- Spec-to-adapter transforms (ECharts option generation inside the adapter only)
 - Metadata serialization
 
 ### Integration tests
 
-- Create chart from sample data
-- Render preview
-- Export to canvas
-- Reopen selected chart
+- Create visualization from sample data
+- Render preview via `VisualizationRenderer`
+- Export to document
+- Reopen selected managed visualization
 - Edit and re-export without regression
 
 ### Manual QA
@@ -58,62 +57,62 @@ This order keeps the project testable from the first week and avoids building UI
 
 ## Major risks
 
-### Risk 1: Coupling the product to ECharts options
+### Risk 1: Coupling the product to ECharts
 
-If the editor state becomes ECharts config, future engine support gets expensive fast.
+If editor state or persistence becomes ECharts config, future adapters get expensive fast.
 
-**Mitigation:** Enforce [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md); keep ECharts option generation in one transform layer.
+**Mitigation:** Enforce [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md) and the [Architecture Contract](docs/architecture/contract.md) coupling rule; keep ECharts option generation inside the adapter.
 
 ### Risk 2: SVG output not mapping cleanly into Figma workflows
 
 Some generated structures may become messy or hard to edit visually after insertion.
 
-**Mitigation:** Inspect real imported SVG structure early; test grouping, naming, and layer cleanliness during [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md).
+**Mitigation:** Inspect real imported SVG structure early; test grouping, naming, and layer cleanliness during [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md) / [SPEC-005](docs/specs/SPEC-005-document-integration.md).
 
 ### Risk 3: Round-trip editing breaks after schema changes
 
-If metadata versions drift, existing charts may stop reopening correctly.
+If metadata versions drift, existing visualizations may stop reopening correctly.
 
-**Mitigation:** Version stored metadata from day one; write migration helpers when schema changes ([SPEC-006](docs/specs/SPEC-006-canvas-export-reediting.md)).
+**Mitigation:** Version stored metadata from day one; write migration helpers when the model changes ([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
 
-### Risk 4: Multi-engine ambition slows V1
+### Risk 4: Premature platform service extraction
 
-Trying to support ECharts, G2, and D3 immediately will likely delay launch.
+Building speculative layout/scale/axis platform engines before patterns repeat wastes time and blurs ownership.
 
-**Mitigation:** [ADR-002](docs/decisions/ADR-002-v1-echarts-only.md); keep renderer interface stable; schedule G2 only after round-trip editing is reliable.
+**Mitigation:** Architecture Contract invariant — extract shared services from repeated patterns only; layout/geometry stay renderer-owned until a new ADR says otherwise.
 
-## Post-V1 roadmap
+### Risk 5: Multi-adapter ambition slows the first usable release
 
-### V1.1
+Trying to ship ECharts, G2, and D3 immediately will likely delay launch.
 
-- Templates
-- More sample datasets
-- Improved theme presets
-- Better axis and label ergonomics
+**Mitigation:** [ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md); keep `VisualizationRenderer` stable; add adapters only after document round-trip is reliable.
 
-### V1.2
+## Future Product Experience
 
-- AntV G2 for histogram, box plot, violin, density
-- Engine selection hidden behind chart categories
+These are **feature expansions**, not architectural milestones. Do not block release on them unless SPEC-001 explicitly pulls one forward.
 
-### V2
+```text
+Future Product Experience
 
-- D3.js for network, hierarchy, and map-heavy visualizations
-- Advanced custom layout types
+Templates
+Recommendations
+Asset Library
+Marketplace
+AI Assistance
+Collaboration
+Cloud Data Sources
+```
 
-### V2+
+## Additional renderer adapters
 
-- Figma variables support
-- Design token integration
-- Team theme libraries
-- Smart chart recommendations
+When the renderer interface has proven stable (typically after SPEC-005), new implementations may be added behind `VisualizationRenderer` (G2, D3, or a first-party renderer). Each requires a new ADR. Do not treat “post-V1 G2” as the architecture story—adapters are interchangeable implementations.
 
 ## Suggested next focus
 
-Target: prove the architecture end to end on one chart type (`bar`).
+Target: prove the architecture end to end on one Cartesian kind (`bar`).
 
-1. Complete [SPEC-003](docs/specs/SPEC-003-canonical-schema.md) (`VisualizationSpec`, `Dataset`, `ChartType`).
-2. Advance [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md) for `bar` SVG preview.
-3. Toward [SPEC-006](docs/specs/SPEC-006-canvas-export-reediting.md): insert SVG, store and read back metadata.
+1. Complete [SPEC-003](docs/specs/SPEC-003-canonical-schema.md) (`VisualizationSpec`, `Dataset`, Visualization Registry, validation, serialization).
+2. Advance [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md) for `bar` SVG via the ECharts adapter.
+3. Complete [SPEC-005](docs/specs/SPEC-005-document-integration.md): round-trip from document metadata.
 
-Honor [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md) and [ADR-002](docs/decisions/ADR-002-v1-echarts-only.md). Success means the architecture is proven; remaining V1 work becomes iterative.
+Honor [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md), [ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md), and the [Architecture Contract](docs/architecture/contract.md). Success means the architecture is proven; remaining work becomes iterative family and experience expansion.
