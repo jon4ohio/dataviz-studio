@@ -1,0 +1,65 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildOption — bar translation (Slice 2) > produces a stable Option snapshot for the default bar Spec 1`] = `
+{
+  "animation": false,
+  "grid": {
+    "bottom": "12%",
+    "containLabel": true,
+    "left": "8%",
+    "right": "8%",
+    "top": "12%",
+  },
+  "legend": {
+    "bottom": "0%",
+    "data": [
+      "Series 1",
+    ],
+    "orient": "horizontal",
+    "show": true,
+  },
+  "progressive": 0,
+  "series": [
+    {
+      "barMaxWidth": 48,
+      "data": [
+        12,
+        19,
+        8,
+        15,
+      ],
+      "name": "Series 1",
+      "type": "bar",
+    },
+  ],
+  "title": {
+    "show": true,
+    "text": "Bar",
+  },
+  "toolbox": {
+    "show": false,
+  },
+  "tooltip": {
+    "show": false,
+  },
+  "xAxis": {
+    "splitLine": {
+      "show": true,
+    },
+    "type": "value",
+  },
+  "yAxis": {
+    "axisTick": {
+      "show": false,
+    },
+    "data": [
+      "A",
+      "B",
+      "C",
+      "D",
+    ],
+    "inverse": true,
+    "type": "category",
+  },
+}
+`;

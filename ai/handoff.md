@@ -5,15 +5,15 @@
 
 ## Delta
 
-- SPEC-004 **Reviewer constraints** locked in: deterministic `buildOption`, strict echarts/ module bounds, Option snapshots as primary Slice 2 regression, snapshot-update policy, PR checklist.
-- Slice 1 complete (placeholder renderer, `bar` only, no ECharts yet).
-- Platform API remains frozen; chart breadth deferred until after SPEC-005.
+- **SPEC-004 Slice 2 complete:** deterministic `buildOption(spec)` for `bar` only (`option-builder` / `mappings` / static `defaults`); Option snapshot + determinism tests; no ECharts runtime yet.
+- Slice 1 placeholder renderer unchanged. Public platform API untouched.
+- Reviewer checklist applies to further renderer PRs.
 
 ## Horizon
 
-1. SPEC-004 Slice 2 — deterministic `buildOption()` + **Option snapshot tests** (judge PRs with the SPEC-004 reviewer checklist); then Slice 3 (Option → SVG); then Slice 4 (Spec → `RenderResult` + preview for `bar`).
-2. **Stop after Slice 4.** Do not add line/area/scatter. Move to [SPEC-005](../docs/specs/SPEC-005-document-integration.md) document round-trip.
-3. Then SPEC-006 data pipeline; expand chart coverage last.
+1. SPEC-004 Slice 3 — Option → Apache ECharts → SVG (confine `echarts` to `domain/renderers/echarts/`).
+2. SPEC-004 Slice 4 — end-to-end Spec → `RenderResult` + preview for `bar`.
+3. **Stop.** Move to [SPEC-005](../docs/specs/SPEC-005-document-integration.md) document round-trip before adding other chart kinds.
 
 ## Blocks
 

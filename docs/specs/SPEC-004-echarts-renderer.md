@@ -173,6 +173,8 @@ No ECharts. No option generation. No real SVG rendering.
 - **Primary tests:** Option snapshot / structure asserts (same Spec → identical Option)
 - No SVG required yet
 
+**Status:** Complete (`domain/renderers/echarts/option-builder.ts`).
+
 ### Slice 3 — SVG rendering
 
 - Option → Apache ECharts → SVG
