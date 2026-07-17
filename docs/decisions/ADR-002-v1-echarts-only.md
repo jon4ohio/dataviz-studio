@@ -2,7 +2,7 @@
 
 ## Status
 
-**Status:** Accepted  
+**Status:** Superseded by [ADR-003](ADR-003-echarts-initial-renderer-adapter.md)  
 **Date:** 2026-07-17  
 **Decision Maker(s):** Jon Ohio  
 **Supersedes:** None
@@ -70,9 +70,11 @@ AntV G2 and D3.js remain post-V1; do not block V1 on them.
 ## Related ADRs
 
 - [ADR-001](ADR-001-canonical-schema-source-of-truth.md) — schema SoT enables deferred engines
+- [ADR-003](ADR-003-echarts-initial-renderer-adapter.md) — supersedes this ADR (ECharts as initial renderer adapter)
 
 ## References
 
 - [SPEC-001](../specs/SPEC-001-v1-product-scope.md) — deferred G2/D3
 - [SPEC-004](../specs/SPEC-004-echarts-renderer.md) — ECharts milestone
 - [EXECUTION_PLAN.md](../../EXECUTION_PLAN.md) — post-V1 roadmap
+- [ADR-003](ADR-003-echarts-initial-renderer-adapter.md) — current decision
