@@ -5,3 +5,5 @@
 
 export { echartsRenderer } from "./renderer";
 export { ECHARTS_RENDERER_ID, ECHARTS_RENDERER_VERSION } from "./defaults";
+/** Internal — Spec → Option. Not part of the public platform API. */
+export { buildOption, type EChartsBarOption } from "./option-builder";
