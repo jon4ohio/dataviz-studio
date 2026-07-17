@@ -3,7 +3,7 @@
 export const ECHARTS_RENDERER_ID = "echarts" as const;
 
 /** Renderer package version — bump when adapter behavior changes. */
-export const ECHARTS_RENDERER_VERSION = "0.1.0-slice2" as const;
+export const ECHARTS_RENDERER_VERSION = "0.1.0-slice3" as const;
 
 /**
  * Static ECharts option defaults only.

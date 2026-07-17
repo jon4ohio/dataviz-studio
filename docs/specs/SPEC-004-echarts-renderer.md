@@ -177,8 +177,10 @@ No ECharts. No option generation. No real SVG rendering.
 
 ### Slice 3 — SVG rendering
 
-- Option → Apache ECharts → SVG
-- Failures stay localized to the rendering step
+- Option → Apache ECharts → SVG via narrow `renderOption()`
+- Failures stay localized to the rendering step; `renderer.ts` normalizes into `RenderResult`
+
+**Status:** Complete (`domain/renderers/echarts/render-option.ts`).
 
 ### Slice 4 — Integration
 
@@ -186,15 +188,19 @@ No ECharts. No option generation. No real SVG rendering.
 - Contract assertions: `success`, non-empty `svg`, `width`, `height`, `renderer`, `version`
 - Wire editor preview to the renderer for `bar` only (sample SVG for unsupported kinds)
 
+**Status:** Complete (UI `previewResult` consumes `RenderResult` for `bar`).
+
 ## Acceptance
 
 - [x] Renderer purity holds for Slice 1 (placeholder; no Figma / storage / UI / network; no spec mutation)
-- [ ] `VisualizationRenderer` implemented as ECharts Renderer package (ECharts confined inside from Slice 3)
+- [x] `VisualizationRenderer` implemented as ECharts Renderer package (ECharts confined inside from Slice 3)
 - [x] `bar` only in scope for this milestone (Slice 1 supports bar only)
-- [ ] ECharts Option never appears outside the renderer
-- [ ] No ECharts types or option fields on `VisualizationSpec`
+- [x] ECharts Option never appears outside the renderer
+- [x] No ECharts types or option fields on `VisualizationSpec`
 - [x] Contract unit test covers placeholder `RenderResult` shape (Slice 1)
-- [ ] Editor preview uses renderer output for `bar` (Slice 4)
+- [x] Editor preview uses renderer output for `bar` (Slice 4)
+
+**Status:** SPEC-004 complete. Stop chart expansion; next is [SPEC-005](SPEC-005-document-integration.md).
 
 ## After this milestone
 

@@ -16,8 +16,10 @@ not part of the platform architecture—only the initial
 `VisualizationRenderer` adapter ([ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md)).
 
 Milestone 2 (canonical model) is implemented and **frozen** as the public
-platform API. Next is the ECharts Renderer ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md))
-for `bar` only; the preview still draws sample SVG until that lands.
+platform API. Milestone 3 (ECharts Renderer) is complete for `bar`, including
+preview via `RenderResult`. Next is document integration
+([SPEC-005](docs/specs/SPEC-005-document-integration.md)). After merging the
+renderer work, tag `v0.1.0-renderer-foundation` before starting SPEC-005.
 
 For contributors and agents: start at [docs/project/entry.md](docs/project/entry.md)
 (project coordination).

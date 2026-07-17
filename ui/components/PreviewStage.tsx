@@ -1,18 +1,27 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import type { VisualizationSpec } from "@domain/schema";
+import { echartsRenderer, type RenderResult } from "@domain/renderers";
 import { CANVAS_THEMES, CATEGORIES, SIZE_LIMITS, clampSize, type SampleState } from "../sample";
 import { SampleChart, type CartesianType, type VisibleSeries } from "./SampleChart";
 import { RadialChart } from "./RadialChart";
 
 interface Props {
   state: SampleState;
+  visualizationSpec: VisualizationSpec;
   onToggleSeries: (id: string) => void;
 }
 
-export function PreviewStage({ state, onToggleSeries }: Props) {
+export function PreviewStage({ state, visualizationSpec, onToggleSeries }: Props) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  /** Renderer-agnostic preview contract state (bar path). */
+  const [previewResult, setPreviewResult] = useState<RenderResult | null>(null);
+  const [previewPending, setPreviewPending] = useState(false);
+  const renderGenerationRef = useRef(0);
+
   const theme = CANVAS_THEMES[state.canvasTheme];
   const radial = state.chartType === "pie" || state.chartType === "doughnut";
+  const usePlatformRenderer = state.chartType === "bar";
   const chartW = clampSize(state.width, SIZE_LIMITS.minW, SIZE_LIMITS.maxW);
   const chartH = clampSize(state.height, SIZE_LIMITS.minH, SIZE_LIMITS.maxH);
 
@@ -23,6 +32,29 @@ export function PreviewStage({ state, onToggleSeries }: Props) {
     .map((data) => ({ data, color: theme.series[data.slot % theme.series.length] }));
   const radialSeries = visible.length > 0 ? visible[0].data : null;
 
+  useEffect(() => {
+    if (!usePlatformRenderer) {
+      setPreviewResult(null);
+      setPreviewPending(false);
+      return;
+    }
+
+    const generation = ++renderGenerationRef.current;
+    let cancelled = false;
+    setPreviewPending(true);
+
+    void echartsRenderer.render(visualizationSpec).then((result) => {
+      // Only the latest VisualizationSpec render may update preview state.
+      if (cancelled || generation !== renderGenerationRef.current) return;
+      setPreviewResult(result);
+      setPreviewPending(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [usePlatformRenderer, visualizationSpec]);
+
   const trackCursor = (event: MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setCursor({
@@ -31,13 +63,25 @@ export function PreviewStage({ state, onToggleSeries }: Props) {
     });
   };
 
-  const readoutLeft =
-    radial && radialSeries
-      ? `SAMPLE RENDERER · SERIES ${radialSeries.name.toUpperCase()}`
-      : "SAMPLE RENDERER · ECHARTS ARRIVES IN M3";
+  let readoutLeft: string;
+  if (usePlatformRenderer) {
+    if (previewPending && !previewResult) {
+      readoutLeft = "RENDERER · PENDING";
+    } else if (previewResult?.success) {
+      readoutLeft = `RENDERER · ${previewResult.renderer.toUpperCase()} · BAR`;
+    } else if (previewResult && !previewResult.success) {
+      readoutLeft = "RENDERER · PREVIEW UNAVAILABLE";
+    } else {
+      readoutLeft = "RENDERER · BAR";
+    }
+  } else if (radial && radialSeries) {
+    readoutLeft = `SAMPLE RENDERER · SERIES ${radialSeries.name.toUpperCase()}`;
+  } else {
+    readoutLeft = "SAMPLE RENDERER";
+  }
 
   let readoutRight = `${chartW}×${chartH} · ${state.chartType.toUpperCase()}`;
-  if (hoverIndex !== null) {
+  if (!usePlatformRenderer && hoverIndex !== null) {
     if (radial && radialSeries) {
       const total = Math.max(1, radialSeries.values.reduce((a, b) => a + b, 0));
       const v = radialSeries.values[hoverIndex];
@@ -122,6 +166,68 @@ export function PreviewStage({ state, onToggleSeries }: Props) {
     </div>
   );
 
+  const platformPreview = usePlatformRenderer && (
+    <div className="plot-canvas" style={{ maxWidth: chartW }}>
+      {previewPending && !previewResult ? (
+        <div className="plot-empty" style={{ color: theme.ink2, width: chartW, height: chartH }}>
+          <p>Rendering preview…</p>
+        </div>
+      ) : previewResult?.success ? (
+        <div
+          className="platform-preview-svg"
+          style={{ width: chartW, height: chartH }}
+          dangerouslySetInnerHTML={{ __html: previewResult.svg }}
+        />
+      ) : (
+        <div className="plot-empty" style={{ color: theme.ink2, width: chartW, height: chartH }}>
+          <p>Preview unavailable</p>
+          {previewResult?.warnings.map((w) => (
+            <p key={w.code}>{w.message}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const samplePreview =
+    visible.length === 0 ? (
+      <div className="plot-empty" style={{ color: theme.ink2 }}>
+        <p>All series are hidden.</p>
+        <p>Turn one on in the Data panel to see the preview.</p>
+      </div>
+    ) : (
+      <div className="plot-canvas" style={{ maxWidth: chartW }}>
+        {radial && radialSeries ? (
+          <RadialChart
+            series={radialSeries}
+            doughnut={state.chartType === "doughnut"}
+            theme={theme}
+            width={chartW}
+            height={chartH}
+            valueLabels={state.valueLabels}
+            hoverIndex={hoverIndex}
+            onHover={setHoverIndex}
+          />
+        ) : (
+          <SampleChart
+            type={state.chartType as CartesianType}
+            series={visible}
+            theme={theme}
+            width={chartW}
+            height={chartH}
+            showXAxis={state.showXAxis}
+            showYAxis={state.showYAxis}
+            showGrid={state.showGrid}
+            smooth={state.smooth}
+            stacked={state.stacked}
+            valueLabels={state.valueLabels}
+            hoverIndex={hoverIndex}
+            onHover={setHoverIndex}
+          />
+        )}
+      </div>
+    );
+
   return (
     <section className="stage" aria-label="Preview">
       <div
@@ -134,55 +240,19 @@ export function PreviewStage({ state, onToggleSeries }: Props) {
         <span className="crop crop-bl" aria-hidden="true" />
         <span className="crop crop-br" aria-hidden="true" />
 
-        <div className="plot-body" onMouseMove={trackCursor}>
-          {state.showTitle && state.title.trim() !== "" && (
+        <div className="plot-body" onMouseMove={usePlatformRenderer ? undefined : trackCursor}>
+          {!usePlatformRenderer && state.showTitle && state.title.trim() !== "" && (
             <h2 className="plot-title" style={{ color: theme.ink, textAlign: state.titleAlign }}>
               {state.title}
             </h2>
           )}
 
-          {state.legendPosition === "top" && legend}
+          {!usePlatformRenderer && state.legendPosition === "top" && legend}
 
-          {visible.length === 0 ? (
-            <div className="plot-empty" style={{ color: theme.ink2 }}>
-              <p>All series are hidden.</p>
-              <p>Turn one on in the Data panel to see the preview.</p>
-            </div>
-          ) : (
-            <div className="plot-canvas" style={{ maxWidth: chartW }}>
-              {radial && radialSeries ? (
-                <RadialChart
-                  series={radialSeries}
-                  doughnut={state.chartType === "doughnut"}
-                  theme={theme}
-                  width={chartW}
-                  height={chartH}
-                  valueLabels={state.valueLabels}
-                  hoverIndex={hoverIndex}
-                  onHover={setHoverIndex}
-                />
-              ) : (
-                <SampleChart
-                  type={state.chartType as CartesianType}
-                  series={visible}
-                  theme={theme}
-                  width={chartW}
-                  height={chartH}
-                  showXAxis={state.showXAxis}
-                  showYAxis={state.showYAxis}
-                  showGrid={state.showGrid}
-                  smooth={state.smooth}
-                  stacked={state.stacked}
-                  valueLabels={state.valueLabels}
-                  hoverIndex={hoverIndex}
-                  onHover={setHoverIndex}
-                />
-              )}
-            </div>
-          )}
+          {usePlatformRenderer ? platformPreview : samplePreview}
 
-          {state.legendPosition === "bottom" && legend}
-          {tooltip}
+          {!usePlatformRenderer && state.legendPosition === "bottom" && legend}
+          {!usePlatformRenderer && tooltip}
         </div>
 
         <div className="readout" style={{ borderColor: theme.grid, color: theme.muted }}>

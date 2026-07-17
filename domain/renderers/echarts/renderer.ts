@@ -1,22 +1,29 @@
 import type { ChartType, VisualizationSpec } from "../../schema";
 import type { RenderResult, VisualizationRenderer } from "../types";
+import { buildOption } from "./option-builder";
 import { ECHARTS_RENDERER_ID, ECHARTS_RENDERER_VERSION } from "./defaults";
+import { renderOption } from "./render-option";
 
 /**
- * Slice 1 — renderer skeleton.
- * Pure: Spec → placeholder RenderResult. No ECharts, no option builder, no Figma.
+ * ECharts Renderer — public orchestration only.
+ * buildOption / renderOption may throw; this layer normalizes into RenderResult.
  */
 
-function placeholderSvg(width: number, height: number, title: string): string {
-  const safeTitle = title.replace(/[<>&"]/g, "");
-  return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-    `<rect width="100%" height="100%" fill="#f4f4f5"/>`,
-    `<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#71717a" font-family="system-ui,sans-serif" font-size="14">`,
-    `ECharts Renderer (placeholder) — ${safeTitle}`,
-    `</text>`,
-    `</svg>`
-  ].join("");
+function failureResult(
+  width: number,
+  height: number,
+  code: string,
+  message: string
+): RenderResult {
+  return {
+    success: false,
+    svg: "",
+    width,
+    height,
+    renderer: ECHARTS_RENDERER_ID,
+    version: ECHARTS_RENDERER_VERSION,
+    warnings: [{ code, message }]
+  };
 }
 
 export const echartsRenderer: VisualizationRenderer = {
@@ -32,30 +39,29 @@ export const echartsRenderer: VisualizationRenderer = {
     const height = spec.layout.height;
 
     if (!this.supports(spec.kind)) {
+      return failureResult(
+        width,
+        height,
+        "unsupported-kind",
+        `ECharts Renderer supports bar only; got ${spec.kind}`
+      );
+    }
+
+    try {
+      const option = buildOption(spec);
+      const svg = renderOption(option, width, height);
       return {
-        success: false,
-        svg: "",
+        success: true,
+        svg,
         width,
         height,
         renderer: ECHARTS_RENDERER_ID,
         version: ECHARTS_RENDERER_VERSION,
-        warnings: [
-          {
-            code: "unsupported-kind",
-            message: `ECharts Renderer Slice 1 supports bar only; got ${spec.kind}`
-          }
-        ]
+        warnings: []
       };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return failureResult(width, height, "render-failed", message);
     }
-
-    return {
-      success: true,
-      svg: placeholderSvg(width, height, spec.title || spec.kind),
-      width,
-      height,
-      renderer: ECHARTS_RENDERER_ID,
-      version: ECHARTS_RENDERER_VERSION,
-      warnings: []
-    };
   }
 };
