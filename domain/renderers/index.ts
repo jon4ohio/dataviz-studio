@@ -5,7 +5,8 @@ import type { ChartType, VisualizationSpec } from "../schema";
  * Changes require an ADR or an approved breaking-change proposal.
  *
  * Meaning: docs/architecture/domain-model.md
- * Implementations (e.g. ECharts adapter) arrive in Milestone 3 / SPEC-004.
+ * Implementations (ECharts Renderer) arrive in Milestone 3 / SPEC-004.
+ * ECharts imports stay inside the renderer package only.
  */
 
 export interface RenderResult {

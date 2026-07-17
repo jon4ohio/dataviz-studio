@@ -7,7 +7,7 @@
 
 DataViz Studio is a design-first **visualization platform** delivered as a Figma plugin: editable, SVG-based visualizations through a visual editor, with a canonical model and pluggable renderers. It is not an “ECharts plugin”; engines sit behind `VisualizationRenderer` as adapters.
 
-Current delivery: **Phase 2 — Visualization Platform**. Milestone 2 ([SPEC-003](../specs/SPEC-003-canonical-schema.md)) Canonical Visualization Model is complete. Next: Milestone 3 ECharts Renderer Adapter ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)).
+Current delivery: **Phase 2 — Platform Execution**. Milestone 2 ([SPEC-003](../specs/SPEC-003-canonical-schema.md)) is complete and **frozen** as the public platform API. Next: Milestone 3 — ECharts Renderer ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)), `bar` only.
 
 ## Where truths live
 
@@ -18,7 +18,7 @@ Current delivery: **Phase 2 — Visualization Platform**. Milestone 2 ([SPEC-003
 | First usable release product scope and user flows | [SPEC-001](../specs/SPEC-001-v1-product-scope.md) |
 | Milestone 1 Foundation (complete) | [SPEC-002](../specs/SPEC-002-foundation.md) |
 | Milestone 2 Canonical Visualization Model | [SPEC-003](../specs/SPEC-003-canonical-schema.md) |
-| Milestone 3 ECharts Renderer Adapter | [SPEC-004](../specs/SPEC-004-echarts-renderer.md) |
+| Milestone 3 ECharts Renderer | [SPEC-004](../specs/SPEC-004-echarts-renderer.md) |
 | Milestone 4 Document Integration | [SPEC-005](../specs/SPEC-005-document-integration.md) |
 | Milestone 5 Data Pipeline | [SPEC-006](../specs/SPEC-006-data-pipeline.md) |
 | Milestone 6 Theme System | [SPEC-007](../specs/SPEC-007-theme-system.md) |

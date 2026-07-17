@@ -33,13 +33,22 @@ Editor UI and preview **consume** the model; they do not replace it as source of
 
 ## Public Platform API (frozen)
 
-Stable after this milestone; changes require an ADR or approved breaking-change proposal:
+**SPEC-003 is frozen.** Treat these contracts like a public API.
+
+Every proposed change should answer: *Does this change the language of the platform?*
+
+- If **yes** → ADR discussion (or approved breaking-change proposal) before merging.
+- If **no** → it belongs in implementation (renderers, document integration, importers, UI), not in the canonical model.
+
+Stable surface:
 
 - `VisualizationSpec`
 - `Dataset`
 - Visualization Registry
 - `VisualizationRenderer`
 - `RenderResult`
+
+Do not “tweak” the model casually while building SPEC-004+. Validate the design by implementing against it.
 
 ## References
 

@@ -15,8 +15,9 @@ TypeScript representation lives under `domain/schema/`. Apache ECharts is
 not part of the platform architecture—only the initial
 `VisualizationRenderer` adapter ([ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md)).
 
-Milestone 2 (canonical model) is implemented. The preview still draws
-sample SVG until Milestone 3.
+Milestone 2 (canonical model) is implemented and **frozen** as the public
+platform API. Next is the ECharts Renderer ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md))
+for `bar` only; the preview still draws sample SVG until that lands.
 
 For contributors and agents: start at [docs/project/entry.md](docs/project/entry.md)
 (project coordination).

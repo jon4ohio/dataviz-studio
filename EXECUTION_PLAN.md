@@ -19,7 +19,7 @@ This file owns **build order**, **testing strategy**, **risks**, and **Future Pr
 
 1. Scaffold the plugin and UI shell ([SPEC-002](docs/specs/SPEC-002-foundation.md)) — **complete**.
 2. Canonical visualization model, Visualization Registry, validation, serialization ([SPEC-003](docs/specs/SPEC-003-canonical-schema.md)).
-3. ECharts renderer adapter for the initial Cartesian family — `bar` first ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md)).
+3. ECharts Renderer implementing `VisualizationRenderer` — **`bar` only** first ([SPEC-004](docs/specs/SPEC-004-echarts-renderer.md)); other Cartesian kinds after the architecture is proven.
 4. Document integration: insert, metadata, round-trip editing ([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
 5. Data pipeline into the model ([SPEC-006](docs/specs/SPEC-006-data-pipeline.md)).
 6. Theme system ([SPEC-007](docs/specs/SPEC-007-theme-system.md)).
@@ -109,10 +109,10 @@ When the renderer interface has proven stable (typically after SPEC-005), new im
 
 ## Suggested next focus
 
-Target: prove the architecture end to end on one Cartesian kind (`bar`).
+Target: prove the renderer contract end to end on **`bar` only**.
 
-1. Complete [SPEC-003](docs/specs/SPEC-003-canonical-schema.md) (`VisualizationSpec`, `Dataset`, Visualization Registry, validation, serialization).
-2. Advance [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md) for `bar` SVG via the ECharts adapter.
-3. Complete [SPEC-005](docs/specs/SPEC-005-document-integration.md): round-trip from document metadata.
+1. [SPEC-004](docs/specs/SPEC-004-echarts-renderer.md) four slices: skeleton → Spec→Option → SVG → integration (`VisualizationSpec` → `RenderResult`).
+2. Then [SPEC-005](docs/specs/SPEC-005-document-integration.md): document insert, metadata, round-trip.
+3. Do **not** revisit SPEC-003 unless a change alters the platform language (then ADR).
 
-Honor [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md), [ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md), and the [Architecture Contract](docs/architecture/contract.md). Success means the architecture is proven; remaining work becomes iterative family and experience expansion.
+Honor [ADR-001](docs/decisions/ADR-001-canonical-schema-source-of-truth.md), [ADR-003](docs/decisions/ADR-003-echarts-initial-renderer-adapter.md), and the [Architecture Contract](docs/architecture/contract.md).
