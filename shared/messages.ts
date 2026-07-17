@@ -11,6 +11,7 @@ export type UIMessage =
   | { type: "ui-ready" }
   | { type: "ping" }
   | { type: "notify"; message: string }
+  | { type: "resize-ui"; width: number; height: number }
   | {
       type: "insert-chart";
       svg: string;

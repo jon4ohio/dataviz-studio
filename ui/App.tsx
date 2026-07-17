@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useBridge } from "./bridge";
 import {
   CANVAS_THEMES,
@@ -15,15 +15,72 @@ import {
   type SeriesMark
 } from "./sample";
 import { buildSampleMeta } from "@domain/persistence";
+import type { ShellMode } from "@shared/uiLayout";
 import { legendItemsForExport, renderSampleSvg } from "./exportSvg";
 import { TopBar } from "./components/TopBar";
+import { MinimizedCard } from "./components/MinimizedCard";
 import { DataPanel } from "./components/DataPanel";
 import { PreviewStage } from "./components/PreviewStage";
 import { StylePanel } from "./components/StylePanel";
 
+const BLUR_MINIMIZE_MS = 150;
+
 export function App() {
   const bridge = useBridge();
   const [state, setState] = useState<SampleState>(INITIAL_STATE);
+  const [shellMode, setShellMode] = useState<ShellMode>("workbench");
+  const shellModeRef = useRef(shellMode);
+  /** Skip one managed-selection expand after export (insert selects the new chart). */
+  const skipManagedExpandRef = useRef(false);
+  const { resizeUi } = bridge;
+
+  shellModeRef.current = shellMode;
+
+  const applyShellMode = useCallback(
+    (mode: ShellMode) => {
+      if (shellModeRef.current !== mode) {
+        shellModeRef.current = mode;
+        setShellMode(mode);
+        resizeUi(mode);
+      }
+    },
+    [resizeUi]
+  );
+
+  const minimize = useCallback(() => applyShellMode("minimized"), [applyShellMode]);
+  const expand = useCallback(() => applyShellMode("workbench"), [applyShellMode]);
+
+  // Best-effort: collapse when focus leaves the plugin iframe (canvas click).
+  useEffect(() => {
+    let timer: number | undefined;
+    const onBlur = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (shellModeRef.current === "workbench") minimize();
+      }, BLUR_MINIMIZE_MS);
+    };
+    const onFocus = () => {
+      window.clearTimeout(timer);
+    };
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [minimize]);
+
+  // Expand when the user selects a managed chart while minimized (edit flow).
+  useEffect(() => {
+    const next = bridge.managedMeta;
+    if (next === null || shellModeRef.current !== "minimized") return;
+    if (skipManagedExpandRef.current) {
+      skipManagedExpandRef.current = false;
+      return;
+    }
+    expand();
+  }, [bridge.managedMeta, expand]);
 
   const patch = (p: Partial<SampleState>) => setState((s) => ({ ...s, ...p }));
 
@@ -81,7 +138,23 @@ export function App() {
     });
 
     bridge.insertChart({ svg, width, height, meta });
+    skipManagedExpandRef.current = true;
+    minimize();
   };
+
+  if (shellMode === "minimized") {
+    return (
+      <div className="app shell-minimized">
+        <MinimizedCard
+          title={state.title}
+          status={bridge.status}
+          hasSelection={bridge.hasSelection}
+          managedChart={bridge.managedMeta !== null}
+          onExpand={expand}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -92,6 +165,7 @@ export function App() {
         managedChart={bridge.managedMeta !== null}
         onPing={bridge.ping}
         onExport={handleExport}
+        onMinimize={minimize}
       />
       <main className="workbench">
         <DataPanel

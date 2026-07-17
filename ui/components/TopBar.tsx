@@ -7,6 +7,7 @@ interface Props {
   managedChart: boolean;
   onPing: () => void;
   onExport: () => void;
+  onMinimize: () => void;
 }
 
 const BRIDGE_LABEL: Record<BridgeStatus, string> = {
@@ -21,7 +22,8 @@ export function TopBar({
   hasSelection,
   managedChart,
   onPing,
-  onExport
+  onExport,
+  onMinimize
 }: Props) {
   return (
     <header className="topbar">
@@ -59,6 +61,18 @@ export function TopBar({
           Selection
           <em>{managedChart ? "managed" : hasSelection ? "active" : "none"}</em>
         </div>
+
+        <button
+          type="button"
+          className="button-ghost topbar-minimize"
+          onClick={onMinimize}
+          title="Minimize to floating card"
+          aria-label="Minimize to floating card"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <rect x="2" y="10" width="10" height="1.5" rx="0.75" fill="currentColor" />
+          </svg>
+        </button>
 
         <button
           type="button"

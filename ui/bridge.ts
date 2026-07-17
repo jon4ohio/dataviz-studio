@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChartPluginMeta } from "@domain/persistence";
 import type { PluginMessage, UIMessage } from "@shared/messages";
+import { sizeForShell, type ShellMode } from "@shared/uiLayout";
 
 /**
  * UI side of the Message Bridge. "preview" means the UI is running in a
@@ -84,5 +85,23 @@ export function useBridge() {
     []
   );
 
-  return { status, latency, hasSelection, managedMeta, ping, notify, insertChart };
+  const resizeUi = useCallback(
+    (mode: ShellMode) => {
+      if (status !== "online") return;
+      const { width, height } = sizeForShell(mode);
+      post({ type: "resize-ui", width, height });
+    },
+    [status]
+  );
+
+  return {
+    status,
+    latency,
+    hasSelection,
+    managedMeta,
+    ping,
+    notify,
+    insertChart,
+    resizeUi
+  };
 }

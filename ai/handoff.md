@@ -5,6 +5,7 @@
 
 ## Delta
 
+- Shell modes: workbench (`1080×700`) vs minimized floating card (`320×72`) via `resize-ui`; collapse on minimize/export/blur; expand on card click or managed selection.
 - Anchor Fuller adoption: Entry, Specs SPEC-001…009, ADR-001/002, slim EXECUTION_PLAN.
 - Milestone 1 Foundation is in place: loadable plugin, typed UI ↔ plugin bridge, React UI shell, sample SVG preview (not ECharts yet). Domain stubs; `VisualizationRenderer` / `RenderResult` frozen.
 

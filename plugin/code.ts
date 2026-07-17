@@ -1,4 +1,5 @@
 import type { PluginMessage, UIMessage } from "../shared/messages";
+import { UI_SIZE } from "../shared/uiLayout";
 import { PLUGIN_DATA_KEY, parseMeta } from "../domain/persistence";
 import { hasSelection, onSelectionChange } from "./selection";
 import { insertChart } from "./insertChart";
@@ -16,7 +17,11 @@ function emitSelectionState(): void {
   send({ type: "managed-selection", meta: parseMeta(raw) });
 }
 
-figma.showUI(__html__, { width: 1080, height: 700, themeColors: true });
+figma.showUI(__html__, {
+  width: UI_SIZE.workbench.width,
+  height: UI_SIZE.workbench.height,
+  themeColors: true
+});
 
 figma.ui.onmessage = (msg: UIMessage) => {
   switch (msg.type) {
@@ -29,6 +34,9 @@ figma.ui.onmessage = (msg: UIMessage) => {
       break;
     case "notify":
       figma.notify(msg.message);
+      break;
+    case "resize-ui":
+      figma.ui.resize(msg.width, msg.height);
       break;
     case "insert-chart":
       void insertChart({

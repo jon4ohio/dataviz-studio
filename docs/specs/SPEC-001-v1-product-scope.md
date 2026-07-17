@@ -32,9 +32,27 @@
 
 ### UI layout intent
 
+**Workbench** (default, `1080×700`):
+
 - Left: chart type and data
 - Center: live preview
 - Right: styling and layout controls
+- Top bar includes minimize control
+
+**Minimized floating card** (`320×72`):
+
+- Compact card with chart title, bridge/selection hint, and Expand
+- Same editor state is kept while minimized (layout/chrome only changes)
+
+| Trigger | Mode |
+|---------|------|
+| Minimize control | Minimized |
+| Successful export to canvas | Minimized |
+| Plugin UI blur (canvas focus; best-effort) | Minimized |
+| Expand / click minimized card | Workbench |
+| Managed chart selected while minimized | Workbench |
+
+Blur is best-effort across Figma hosts; export, manual minimize/expand, and managed-selection expand are the reliable paths. Host window position is owned by Figma (card is not canvas-draggable).
 
 ### Core user flows
 
@@ -69,6 +87,9 @@ Metadata on inserted nodes: visualization schema, raw or normalized dataset, the
 - [ ] V1 deliverables above are implemented without shipping deferred engines or deferred features
 - [ ] Create, edit-existing, and reuse-palette flows work end to end
 - [ ] Inserted charts reopen with data and styling preserved
+- [ ] Manual minimize/expand toggles workbench ↔ floating card and resizes the plugin window in Figma
+- [ ] Successful export collapses to the minimized card; editor state is preserved on expand
+- [ ] Selecting a managed chart while minimized expands to the workbench
 
 ## References
 
@@ -76,3 +97,4 @@ Metadata on inserted nodes: visualization schema, raw or normalized dataset, the
 - [ADR-002](../decisions/ADR-002-v1-echarts-only.md)
 - Milestone Specs: [SPEC-002](SPEC-002-foundation.md) … [SPEC-009](SPEC-009-release-preparation.md)
 - [EXECUTION_PLAN.md](../../EXECUTION_PLAN.md) — build order, testing, risks
+- `shared/uiLayout.ts`, `shared/messages.ts` (`resize-ui`)
