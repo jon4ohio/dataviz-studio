@@ -60,6 +60,7 @@ The following constraints apply to every milestone:
 3. Platform code never imports renderer internals.
 4. Renderer implementations never mutate the `VisualizationSpec`.
 5. Shared platform services emerge from repeated patterns rather than speculative abstraction.
+6. Renderers are pure: `VisualizationSpec` → `RenderResult` with no Figma, storage, UI, or network side effects, and no mutation of the spec ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)).
 
 ## Separation of concerns
 

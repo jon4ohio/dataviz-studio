@@ -79,7 +79,7 @@ interface VisualizationRenderer {
 }
 ```
 
-`RenderResult` includes at minimum: `svg`, `width`, `height`, `engine`, `engineVersion`.
+`RenderResult` includes at minimum: `success`, `svg`, `width`, `height`, `renderer`, `version`, `warnings` (see [SPEC-004](SPEC-004-echarts-renderer.md)).
 
 Document metadata on inserted nodes: `VisualizationSpec`, dataset, theme id or palette, renderer id, renderer version, plugin version—not editable SVG.
 

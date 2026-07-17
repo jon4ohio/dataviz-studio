@@ -57,7 +57,7 @@ Registry         ← metadata about kinds (not rendering)
 | Concept | Meaning |
 |---------|---------|
 | VisualizationRenderer | Adapter that turns a visualization into host-agnostic output |
-| RenderResult | Renderer output (`svg`, size, engine identity)—not editable SoT |
+| RenderResult | Renderer output (`success`, `svg`, size, `renderer` / `version`, warnings)—not editable SoT; no Figma nodes |
 | Visualization Registry | Metadata describing visualization kinds |
 
 ## Relationships

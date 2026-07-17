@@ -5,15 +5,15 @@
 
 ## Delta
 
-- **Platform definition complete (Phase 1):** Architecture Contract, ADRs, Domain Model, SPEC-003 schema / validation / registry, Public Platform API **frozen**. Work is now **implementation-driven** (validate contracts, don’t redesign them).
-- SPEC-004 reframed as **ECharts Renderer** (not “adapter” milestone title): internal Spec → Option → ECharts → SVG → `RenderResult`; **`bar` only**; four slices (skeleton → option → SVG → integration).
-- UI still binds to `VisualizationSpec`; preview remains sample SVG until SPEC-004 Slice 4.
+- SPEC-004: **Renderer purity** + strengthened `RenderResult` (`success`, `renderer`, `version`, `warnings`, optional `diagnostics`).
+- **Slice 1 complete:** `domain/renderers/echarts/` skeleton — placeholder SVG, `bar` only, no ECharts dependency yet; contract tests pass.
+- Platform API remains frozen; chart breadth deferred until after SPEC-005.
 
 ## Horizon
 
-1. [SPEC-004](../docs/specs/SPEC-004-echarts-renderer.md) — ECharts Renderer, four slices, `bar` only; prove `VisualizationSpec` → `RenderResult`.
-2. [SPEC-005](../docs/specs/SPEC-005-document-integration.md) — document integration + round-trip (first user-perceived “native Figma” moment).
-3. Follow build order in [EXECUTION_PLAN.md](../EXECUTION_PLAN.md).
+1. SPEC-004 Slice 2 — `option-builder.ts` (Spec → ECharts Option), then Slice 3 (Option → SVG), then Slice 4 (integration + preview for `bar`).
+2. **Stop at `bar`.** Move to [SPEC-005](../docs/specs/SPEC-005-document-integration.md) round-trip before adding line/area/scatter.
+3. Then SPEC-006 data pipeline; expand chart coverage last.
 
 ## Blocks
 
