@@ -7,7 +7,7 @@
 
 DataViz Studio is a design-first **visualization platform** delivered as a Figma plugin: editable, SVG-based visualizations through a visual editor, with a canonical model and pluggable renderers. It is not an “ECharts plugin”; engines sit behind `VisualizationRenderer` as adapters.
 
-Current delivery: **Phase 2 — Platform Execution**. Milestone 3 ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)) is complete and tagged **`v0.1.0-renderer-foundation`** (stable platform API, renderer interface, ECharts `bar` adapter, preview via `RenderResult` — not document integration). Active: Milestone 4 — Document Integration / **Document Projection** ([SPEC-005](../specs/SPEC-005-document-integration.md)).
+Current delivery: **Phase 2 — Platform Execution**. Milestone 3 ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)) is complete and tagged **`v0.1.0-renderer-foundation`**. Milestone 4 — Document Integration / **Document Projection** ([SPEC-005](../specs/SPEC-005-document-integration.md)) is on main. Next: Milestone 5 — Data Pipeline ([SPEC-006](../specs/SPEC-006-data-pipeline.md)).
 
 ## Where truths live
 
