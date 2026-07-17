@@ -2,7 +2,7 @@ import type { PluginMessage, UIMessage } from "../shared/messages";
 import { UI_SIZE } from "../shared/uiLayout";
 import { PLUGIN_DATA_KEY, parseMeta } from "../domain/persistence";
 import { hasSelection, onSelectionChange } from "./selection";
-import { insertChart } from "./insertChart";
+import { insertChart, updateChart } from "./insertChart";
 
 const send = (msg: PluginMessage) => figma.ui.postMessage(msg);
 
@@ -43,9 +43,30 @@ figma.ui.onmessage = (msg: UIMessage) => {
         svg: msg.svg,
         width: msg.width,
         height: msg.height,
-        meta: msg.meta
+        meta: msg.meta,
+        chrome: msg.chrome
       }).then(() => emitSelectionState());
       break;
+    case "update-chart": {
+      const node = figma.currentPage.selection[0];
+      if (!node || node.type !== "FRAME") {
+        figma.notify("Select a managed chart to update");
+        break;
+      }
+      const existing = parseMeta(node.getPluginData(PLUGIN_DATA_KEY));
+      if (!existing) {
+        figma.notify("Selection is not a managed DataViz chart");
+        break;
+      }
+      void updateChart(node, {
+        svg: msg.svg,
+        width: msg.width,
+        height: msg.height,
+        meta: msg.meta,
+        chrome: msg.chrome
+      }).then(() => emitSelectionState());
+      break;
+    }
     default: {
       const _exhaustive: never = msg;
       void _exhaustive;

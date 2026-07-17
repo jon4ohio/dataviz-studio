@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChartPluginMeta } from "@domain/persistence";
-import type { PluginMessage, UIMessage } from "@shared/messages";
+import type { ChartPluginMeta, DocumentProjectionChrome } from "@domain/persistence";
+import type { PluginMessage, ProjectChartPayload, UIMessage } from "@shared/messages";
 import { sizeForShell, type ShellMode } from "@shared/uiLayout";
 
 /**
@@ -73,17 +73,13 @@ export function useBridge() {
     post({ type: "notify", message });
   }, []);
 
-  const insertChart = useCallback(
-    (payload: {
-      svg: string;
-      width: number;
-      height: number;
-      meta: ChartPluginMeta;
-    }) => {
+  const projectChart = useCallback((payload: ProjectChartPayload, mode: "insert" | "update") => {
+    if (mode === "update") {
+      post({ type: "update-chart", ...payload });
+    } else {
       post({ type: "insert-chart", ...payload });
-    },
-    []
-  );
+    }
+  }, []);
 
   const resizeUi = useCallback(
     (mode: ShellMode) => {
@@ -101,7 +97,10 @@ export function useBridge() {
     managedMeta,
     ping,
     notify,
-    insertChart,
+    projectChart,
     resizeUi
   };
 }
+
+/** Re-export chrome type for call sites that build Projection payloads. */
+export type { DocumentProjectionChrome };

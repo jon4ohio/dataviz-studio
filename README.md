@@ -17,9 +17,9 @@ not part of the platform architecture—only the initial
 
 Milestone 2 (canonical model) is implemented and **frozen** as the public
 platform API. Milestone 3 (ECharts Renderer) is complete for `bar`, including
-preview via `RenderResult`. Next is document integration
-([SPEC-005](docs/specs/SPEC-005-document-integration.md)). After merging the
-renderer work, tag `v0.1.0-renderer-foundation` before starting SPEC-005.
+preview via `RenderResult`, and tagged **`v0.1.0-renderer-foundation`**.
+Active work is document integration / **Document Projection**
+([SPEC-005](docs/specs/SPEC-005-document-integration.md)).
 
 For contributors and agents: start at [docs/project/entry.md](docs/project/entry.md)
 (project coordination).
@@ -48,7 +48,7 @@ After changing plugin or UI code, run `npm run build` and re-run the plugin in
 Figma. The UI is bundled into one HTML document because the Figma plugin
 iframe cannot load relative assets.
 
-## Verifying the bridge and export
+## Verifying the bridge and Document Projection
 
 Inside Figma, the top bar shows:
 
@@ -57,19 +57,19 @@ Inside Figma, the top bar shows:
   round-trip time.
 - **Selection** — *none* / *active* / *managed* (managed = a DataViz Studio
   chart with versioned plugin data).
-- **Export to canvas** — inserts an Auto Layout frame:
+- **Export to canvas** — projects a Document Projection (Auto Layout frame):
 
   ```text
   Chart / {title}
   ├── Title
-  ├── Plot          (sample SVG vectors)
-  └── Legend        (optional)
+  ├── Plot          (SVG from RenderResult for bar; sample SVG otherwise)
+  └── Legend        (optional chrome, derived at Projection time)
   ```
 
-  Metadata is stored on the root frame (`dataviz-studio` plugin data, schema
-  version 1). Editor reopen from that metadata is not wired yet (Milestone 4).
-
-In a plain browser (`npm run dev`), Export explains that Figma is required.
+  Semantic metadata is stored on the root frame (`dataviz-studio` plugin data,
+  schema version 2): `VisualizationSpec` + renderer identity — never SVG.
+  Selecting a managed chart **restores** the editor from that Spec. Re-export
+  updates the same managed root (preserves identity).
 
 ## Architecture
 
@@ -78,7 +78,7 @@ plugin/    Figma plugin runtime (insert Auto Layout charts + selection)
 ui/        React editor shell — Data | Preview | Style
 shared/    Message Bridge contracts (the only cross-runtime interface)
 domain/    schema / transform / renderers / theme / persistence / import
-           (schema + persistence are live; transform/renderers adapters stubbed)
+           (schema, renderers/echarts bar, persistence Document Projection live)
 ```
 
 Pipeline and invariants: [Architecture Contract](docs/architecture/contract.md).

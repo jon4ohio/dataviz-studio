@@ -1,7 +1,8 @@
 import {
   PLUGIN_DATA_KEY,
   serializeMeta,
-  type ChartPluginMeta
+  type ChartPluginMeta,
+  type DocumentProjectionChrome
 } from "../domain/persistence";
 
 function hexToRgb(hex: string): RGB {
@@ -19,7 +20,7 @@ function solidPaint(hex: string): SolidPaint {
 }
 
 function alignFromTitle(
-  align: ChartPluginMeta["titleAlign"]
+  align: DocumentProjectionChrome["titleAlign"]
 ): "MIN" | "CENTER" | "MAX" {
   switch (align) {
     case "left":
@@ -75,7 +76,7 @@ function createLegendItem(name: string, color: string, ink2: string): FrameNode 
   return row;
 }
 
-function createLegend(meta: ChartPluginMeta): FrameNode {
+function createLegend(chrome: DocumentProjectionChrome): FrameNode {
   const legend = figma.createFrame();
   legend.name = "Legend";
   legend.layoutMode = "HORIZONTAL";
@@ -86,8 +87,8 @@ function createLegend(meta: ChartPluginMeta): FrameNode {
   legend.layoutSizingHorizontal = "HUG";
   legend.layoutSizingVertical = "HUG";
 
-  for (const item of meta.legendItems) {
-    legend.appendChild(createLegendItem(item.name, item.color, meta.theme.ink2));
+  for (const item of chrome.legendItems) {
+    legend.appendChild(createLegendItem(item.name, item.color, chrome.theme.ink2));
   }
 
   return legend;
@@ -122,61 +123,78 @@ function buildPlot(svg: string, width: number, height: number): FrameNode {
   return plot;
 }
 
-/**
- * Insert a named Auto Layout chart frame: Title / Plot / Legend + plugin metadata.
- */
-export async function insertChart(args: {
-  svg: string;
-  width: number;
-  height: number;
-  meta: ChartPluginMeta;
-}): Promise<FrameNode> {
-  const { svg, width, height, meta } = args;
-  await loadFonts();
-
-  const root = figma.createFrame();
-  root.name = `Chart / ${meta.title.trim() || "Untitled"}`;
+function applyChromeLayout(root: FrameNode, chrome: DocumentProjectionChrome): void {
   root.layoutMode = "VERTICAL";
   root.primaryAxisAlignItems = "MIN";
-  root.counterAxisAlignItems = alignFromTitle(meta.titleAlign);
+  root.counterAxisAlignItems = alignFromTitle(chrome.titleAlign);
   root.itemSpacing = 12;
   root.paddingTop = 16;
   root.paddingBottom = 16;
   root.paddingLeft = 16;
   root.paddingRight = 16;
-  root.fills = [solidPaint(meta.theme.surface)];
+  root.fills = [solidPaint(chrome.theme.surface)];
   root.strokes = [];
   root.cornerRadius = 0;
   root.layoutSizingHorizontal = "HUG";
   root.layoutSizingVertical = "HUG";
+}
 
-  const showLegend = meta.showLegend && meta.legendItems.length > 0;
-  const legendTop = showLegend && meta.legendPosition === "top";
-  const legendBottom = showLegend && meta.legendPosition === "bottom";
+function populateProjection(
+  root: FrameNode,
+  svg: string,
+  width: number,
+  height: number,
+  chrome: DocumentProjectionChrome
+): void {
+  root.name = `Chart / ${chrome.title.trim() || "Untitled"}`;
+  applyChromeLayout(root, chrome);
 
-  if (meta.showTitle && meta.title.trim() !== "") {
+  const showLegend = chrome.showLegend && chrome.legendItems.length > 0;
+  const legendTop = showLegend && chrome.legendPosition === "top";
+  const legendBottom = showLegend && chrome.legendPosition === "bottom";
+
+  if (chrome.showTitle && chrome.title.trim() !== "") {
     const title = figma.createText();
     title.name = "Title";
     title.fontName = { family: "Inter", style: "Medium" };
     title.fontSize = 14;
-    title.characters = meta.title;
-    title.fills = [solidPaint(meta.theme.ink)];
+    title.characters = chrome.title;
+    title.fills = [solidPaint(chrome.theme.ink)];
     title.textAlignHorizontal =
-      meta.titleAlign === "left" ? "LEFT" : meta.titleAlign === "right" ? "RIGHT" : "CENTER";
+      chrome.titleAlign === "left" ? "LEFT" : chrome.titleAlign === "right" ? "RIGHT" : "CENTER";
     title.layoutSizingHorizontal = "FILL";
     root.appendChild(title);
   }
 
   if (legendTop) {
-    root.appendChild(createLegend(meta));
+    root.appendChild(createLegend(chrome));
   }
 
   root.appendChild(buildPlot(svg, width, height));
 
   if (legendBottom) {
-    root.appendChild(createLegend(meta));
+    root.appendChild(createLegend(chrome));
   }
+}
 
+export type ProjectChartArgs = {
+  svg: string;
+  width: number;
+  height: number;
+  meta: ChartPluginMeta;
+  chrome: DocumentProjectionChrome;
+};
+
+/**
+ * Insert a Document Projection: Auto Layout chrome + plot SVG + semantic plugin metadata.
+ * The Figma node is a cached projection of VisualizationSpec — never the source of truth.
+ */
+export async function insertChart(args: ProjectChartArgs): Promise<FrameNode> {
+  const { svg, width, height, meta, chrome } = args;
+  await loadFonts();
+
+  const root = figma.createFrame();
+  populateProjection(root, svg, width, height, chrome);
   root.setPluginData(PLUGIN_DATA_KEY, serializeMeta(meta));
 
   const center = figma.viewport.center;
@@ -187,6 +205,29 @@ export async function insertChart(args: {
   figma.currentPage.selection = [root];
   figma.viewport.scrollAndZoomIntoView([root]);
   figma.notify("Chart inserted");
+
+  return root;
+}
+
+/**
+ * Replace the Document Projection under an existing managed root (preserve identity).
+ */
+export async function updateChart(
+  root: FrameNode,
+  args: Omit<ProjectChartArgs, "meta"> & { meta: ChartPluginMeta }
+): Promise<FrameNode> {
+  const { svg, width, height, meta, chrome } = args;
+  await loadFonts();
+
+  for (const child of [...root.children]) {
+    child.remove();
+  }
+
+  populateProjection(root, svg, width, height, chrome);
+  root.setPluginData(PLUGIN_DATA_KEY, serializeMeta(meta));
+
+  figma.currentPage.selection = [root];
+  figma.notify("Chart updated");
 
   return root;
 }

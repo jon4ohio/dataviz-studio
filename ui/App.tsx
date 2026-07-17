@@ -14,9 +14,10 @@ import {
   type SampleState,
   type SeriesMark
 } from "./sample";
-import { sampleStateToVisualizationSpec } from "./sampleToSpec";
+import { sampleStateToVisualizationSpec, visualizationSpecToSampleState } from "./sampleToSpec";
 import { getVisualizationKind } from "@domain/schema";
-import { buildSampleMeta } from "@domain/persistence";
+import { buildChartMeta, buildProjectionChrome } from "@domain/persistence";
+import { echartsRenderer } from "@domain/renderers";
 import type { ShellMode } from "@shared/uiLayout";
 import { legendItemsForExport, renderSampleSvg } from "./exportSvg";
 import { TopBar } from "./components/TopBar";
@@ -26,6 +27,8 @@ import { PreviewStage } from "./components/PreviewStage";
 import { StylePanel } from "./components/StylePanel";
 
 const BLUR_MINIMIZE_MS = 150;
+const SAMPLE_RENDERER_ID = "sample-svg";
+const SAMPLE_RENDERER_VERSION = "0.1.0";
 
 export function App() {
   const bridge = useBridge();
@@ -34,6 +37,8 @@ export function App() {
   const shellModeRef = useRef(shellMode);
   /** Skip one managed-selection expand after export (insert selects the new chart). */
   const skipManagedExpandRef = useRef(false);
+  /** Spec id last restored — avoid re-hydrating on every selection tick. */
+  const restoredSpecKeyRef = useRef<string | null>(null);
   const { resizeUi } = bridge;
 
   shellModeRef.current = shellMode;
@@ -76,13 +81,31 @@ export function App() {
   // Expand when the user selects a managed chart while minimized (edit flow).
   useEffect(() => {
     const next = bridge.managedMeta;
-    if (next === null || shellModeRef.current !== "minimized") return;
-    if (skipManagedExpandRef.current) {
-      skipManagedExpandRef.current = false;
+    if (next === null) {
+      restoredSpecKeyRef.current = null;
       return;
     }
-    expand();
+    if (shellModeRef.current === "minimized") {
+      if (skipManagedExpandRef.current) {
+        skipManagedExpandRef.current = false;
+        return;
+      }
+      expand();
+    }
   }, [bridge.managedMeta, expand]);
+
+  // Restoration: managed selection → VisualizationSpec → editor (never from SVG).
+  useEffect(() => {
+    const meta = bridge.managedMeta;
+    if (!meta) {
+      restoredSpecKeyRef.current = null;
+      return;
+    }
+    const key = JSON.stringify(meta.spec);
+    if (restoredSpecKeyRef.current === key) return;
+    restoredSpecKeyRef.current = key;
+    setState(visualizationSpecToSampleState(meta.spec));
+  }, [bridge.managedMeta]);
 
   const patch = (p: Partial<SampleState>) => setState((s) => ({ ...s, ...p }));
 
@@ -127,25 +150,63 @@ export function App() {
       return;
     }
 
-    const { svg, width, height } = renderSampleSvg(state);
-    const theme = CANVAS_THEMES[state.canvasTheme];
-    const meta = buildSampleMeta({
-      title: state.title,
-      showTitle: state.showTitle,
-      titleAlign: state.titleAlign,
-      showLegend: state.showLegend,
-      legendPosition: state.legendPosition,
-      chartType: state.chartType,
-      width: clampSize(state.width, SIZE_LIMITS.minW, SIZE_LIMITS.maxW),
-      height: clampSize(state.height, SIZE_LIMITS.minH, SIZE_LIMITS.maxH),
-      theme: { surface: theme.surface, ink: theme.ink, ink2: theme.ink2 },
-      legendItems: legendItemsForExport(state),
-      sampleState: state
-    });
+    void (async () => {
+      const width = clampSize(state.width, SIZE_LIMITS.minW, SIZE_LIMITS.maxW);
+      const height = clampSize(state.height, SIZE_LIMITS.minH, SIZE_LIMITS.maxH);
+      const theme = CANVAS_THEMES[state.canvasTheme];
 
-    bridge.insertChart({ svg, width, height, meta });
-    skipManagedExpandRef.current = true;
-    minimize();
+      let svg: string;
+      let outW: number;
+      let outH: number;
+      let rendererId: string;
+      let rendererVersion: string;
+
+      if (state.chartType === "bar") {
+        const result = await echartsRenderer.render({
+          ...visualizationSpec,
+          layout: { ...visualizationSpec.layout, width, height }
+        });
+        if (!result.success || !result.svg) {
+          const detail = result.warnings[0]?.message ?? "Renderer failed";
+          window.alert(`Export failed: ${detail}`);
+          return;
+        }
+        svg = result.svg;
+        outW = result.width;
+        outH = result.height;
+        rendererId = result.renderer;
+        rendererVersion = result.version;
+      } else {
+        const sample = renderSampleSvg(state);
+        svg = sample.svg;
+        outW = sample.width;
+        outH = sample.height;
+        rendererId = SAMPLE_RENDERER_ID;
+        rendererVersion = SAMPLE_RENDERER_VERSION;
+      }
+
+      const specForMeta = {
+        ...visualizationSpec,
+        layout: { ...visualizationSpec.layout, width: outW, height: outH }
+      };
+      const meta = buildChartMeta({
+        rendererId,
+        rendererVersion,
+        spec: specForMeta
+      });
+      const chrome = buildProjectionChrome({
+        spec: specForMeta,
+        showTitle: state.showTitle,
+        titleAlign: state.titleAlign,
+        theme: { surface: theme.surface, ink: theme.ink, ink2: theme.ink2 },
+        legendItems: legendItemsForExport(state)
+      });
+
+      const mode = bridge.managedMeta !== null ? "update" : "insert";
+      bridge.projectChart({ svg, width: outW, height: outH, meta, chrome }, mode);
+      skipManagedExpandRef.current = true;
+      minimize();
+    })();
   };
 
   if (shellMode === "minimized") {

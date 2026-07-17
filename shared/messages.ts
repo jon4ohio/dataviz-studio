@@ -4,7 +4,16 @@
  * these types; future milestones extend them, never bypass them.
  */
 
-import type { ChartPluginMeta } from "../domain/persistence";
+import type { ChartPluginMeta, DocumentProjectionChrome } from "../domain/persistence";
+
+/** Payload shared by insert and update Document Projection messages. */
+export type ProjectChartPayload = {
+  svg: string;
+  width: number;
+  height: number;
+  meta: ChartPluginMeta;
+  chrome: DocumentProjectionChrome;
+};
 
 /** Messages sent from the UI iframe to the plugin runtime. */
 export type UIMessage =
@@ -12,13 +21,8 @@ export type UIMessage =
   | { type: "ping" }
   | { type: "notify"; message: string }
   | { type: "resize-ui"; width: number; height: number }
-  | {
-      type: "insert-chart";
-      svg: string;
-      width: number;
-      height: number;
-      meta: ChartPluginMeta;
-    };
+  | ({ type: "insert-chart" } & ProjectChartPayload)
+  | ({ type: "update-chart" } & ProjectChartPayload);
 
 /** Messages sent from the plugin runtime to the UI iframe. */
 export type PluginMessage =
