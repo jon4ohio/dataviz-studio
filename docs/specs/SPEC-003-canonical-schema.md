@@ -26,14 +26,25 @@ Editor UI and preview **consume** the model; they do not replace it as source of
 
 ## Acceptance
 
-- [ ] A visualization can be fully represented without referencing ECharts-specific config
-- [ ] Spec validates, serializes to JSON, and deserializes without loss of editable fields
-- [ ] Visualization Registry can resolve at least the initial Cartesian kinds with defaults
-- [ ] Preview / controls in the UI bind to `VisualizationSpec` (even if rendering is still sample SVG until SPEC-004)
+- [x] A visualization can be fully represented without referencing ECharts-specific config
+- [x] Spec validates, serializes to JSON, and deserializes without loss of editable fields
+- [x] Visualization Registry can resolve at least the initial Cartesian kinds with defaults
+- [x] Preview / controls in the UI bind to `VisualizationSpec` (even if rendering is still sample SVG until SPEC-004)
+
+## Public Platform API (frozen)
+
+Stable after this milestone; changes require an ADR or approved breaking-change proposal:
+
+- `VisualizationSpec`
+- `Dataset`
+- Visualization Registry
+- `VisualizationRenderer`
+- `RenderResult`
 
 ## References
 
 - [Architecture Contract](../architecture/contract.md)
+- [Domain Model](../architecture/domain-model.md) — vocabulary (meaning); schema is representation
 - [ADR-001](../decisions/ADR-001-canonical-schema-source-of-truth.md)
 - [SPEC-001](SPEC-001-v1-product-scope.md)
 - `domain/schema/`

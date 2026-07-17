@@ -11,6 +11,9 @@ import {
 
 interface Props {
   state: SampleState;
+  /** Registry label for the bound VisualizationSpec kind. */
+  modelKindLabel: string;
+  modelFamily: string;
   onSetChartType: (type: SampleChartType) => void;
   onRenameSeries: (id: string, name: string) => void;
   onToggleSeries: (id: string) => void;
@@ -143,6 +146,10 @@ export function DataPanel(props: Props) {
   return (
     <aside className="panel panel-data" aria-label="Data">
       <p className="eyebrow">Data</p>
+      <p className="field-hint" title="Bound VisualizationSpec (canonical model)">
+        Model: {props.modelKindLabel}
+        <span className="muted"> · {props.modelFamily}</span>
+      </p>
 
       <div className="field-group">
         <p className="field-label">Chart type</p>

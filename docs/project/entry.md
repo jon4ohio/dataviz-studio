@@ -7,13 +7,14 @@
 
 DataViz Studio is a design-first **visualization platform** delivered as a Figma plugin: editable, SVG-based visualizations through a visual editor, with a canonical model and pluggable renderers. It is not an “ECharts plugin”; engines sit behind `VisualizationRenderer` as adapters.
 
-Current delivery: **Phase 2 — Visualization Platform**, starting at **Milestone 2 — Canonical Visualization Model** ([SPEC-003](../specs/SPEC-003-canonical-schema.md)). Phase 1 Foundation ([SPEC-002](../specs/SPEC-002-foundation.md)) is complete.
+Current delivery: **Phase 2 — Visualization Platform**. Milestone 2 ([SPEC-003](../specs/SPEC-003-canonical-schema.md)) Canonical Visualization Model is complete. Next: Milestone 3 ECharts Renderer Adapter ([SPEC-004](../specs/SPEC-004-echarts-renderer.md)).
 
 ## Where truths live
 
 | Question | Owner |
 |----------|-------|
 | Pipeline, ownership, architectural invariants | [Architecture Contract](../architecture/contract.md) |
+| Entity vocabulary and meanings (not TypeScript) | [Domain Model](../architecture/domain-model.md) |
 | First usable release product scope and user flows | [SPEC-001](../specs/SPEC-001-v1-product-scope.md) |
 | Milestone 1 Foundation (complete) | [SPEC-002](../specs/SPEC-002-foundation.md) |
 | Milestone 2 Canonical Visualization Model | [SPEC-003](../specs/SPEC-003-canonical-schema.md) |
@@ -34,6 +35,7 @@ Current delivery: **Phase 2 — Visualization Platform**, starting at **Mileston
 | Contract | Implementation | Location |
 |----------|----------------|----------|
 | Architecture | Project Architecture Contract | `docs/architecture/contract.md` |
+| Domain Model | Project vocabulary (meaning) | `docs/architecture/domain-model.md` |
 | Decision Records | [Operational ADR](https://github.com/jon4ohio/operational-adr) (Tier 0 lean) | `docs/decisions/` |
 | Specification | Anchor Spec (problem / requirements / acceptance / references) | `docs/specs/` |
 | Handoff | Anchor Handoff | `ai/handoff.md` |

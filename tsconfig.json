@@ -17,5 +17,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["ui", "shared", "domain"]
+  "include": ["ui", "shared", "domain"],
+  "exclude": ["**/*.test.ts", "vitest.config.ts"]
 }
